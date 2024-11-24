@@ -1,3 +1,3 @@
-module github.com/sulicat/goboi v0.0.0
+module github.com/sulicat/goboi
 
 go 1.23.3

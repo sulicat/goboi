@@ -1,5 +1,5 @@
 package goboi
 
-func GoBoiTest() string {
-	return "Hello world"
+func GetTest() string {
+	return "aaaa Hello world"
 }
