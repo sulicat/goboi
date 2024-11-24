@@ -1,4 +1,4 @@
-package goboi
+package utils
 
 func GoBoiTest() string {
 	return "Hello world"
