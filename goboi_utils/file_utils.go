@@ -25,12 +25,18 @@ func FileListGlob(fl *FileList, regex string, keep_match bool) FileList {
 	return out
 }
 
+// returns a fixed path, which means it ends with "/"
+func FixDirPath(path_in string) string {
+	out := path_in
+	if out[len(out)-1] != '/' {
+		out = out + "/"
+	}
+	return out
+}
+
 func FilesInDir(dir string, show_dirs bool, recursive bool) FileList {
 	var out FileList
-
-	if dir[len(dir)-1] != '/' {
-		dir = dir + "/"
-	}
+	dir = FixDirPath(dir)
 
 	items, _ := os.ReadDir(dir)
 
