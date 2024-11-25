@@ -34,12 +34,12 @@ func FixDirPath(path_in string) string {
 	return out
 }
 
+// read all files and dirs in a directory, recursively or not
+// it does not include the initial directory name
 func FilesInDir(dir string, show_dirs bool, recursive bool) FileList {
 	var out FileList
 	dir = FixDirPath(dir)
-
 	items, _ := os.ReadDir(dir)
-
 	for _, v := range items {
 
 		// if not a directory or if we want directories
@@ -62,7 +62,6 @@ func FilesInDir(dir string, show_dirs bool, recursive bool) FileList {
 						IsDir: new_v.IsDir,
 						Name:  new_path,
 					})
-
 			}
 		}
 	}
