@@ -1,5 +1,6 @@
 package colors
 
+// ANSI escape sequence colors
 const (
 	// Text Colors (Foreground)
 	Black   = "\033[30m"
