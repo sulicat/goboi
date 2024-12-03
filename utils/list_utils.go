@@ -8,7 +8,7 @@ func Second[T any](first any, second T, rest ...any) T {
 	return second
 }
 
-func ArrayForEach[T any, U any](in []T, cb func(T) U) []U {
+func MapArray[T any, U any](in []T, cb func(T) U) []U {
 	out := make([]U, len(in))
 	for i, val := range in {
 
