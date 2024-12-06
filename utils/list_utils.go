@@ -22,3 +22,18 @@ func ForEach[T any](in []T, cb func(T)) {
 		cb(val)
 	}
 }
+
+func ArrayInsert[T any](slice []T, index int, value T) []T {
+	new_slice := make([]T, len(slice)+1)
+	copy(new_slice[:index], slice[:index])
+	new_slice[index] = value
+	copy(new_slice[index+1:], slice[index:])
+	return new_slice
+}
+
+func ArrayRemove[T any](slice []T, index int) []T {
+	new_slice := make([]T, len(slice)-1)
+	copy(new_slice[:index], slice[:index])
+	copy(new_slice[index:], slice[index+1:])
+	return new_slice
+}
