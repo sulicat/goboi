@@ -3,6 +3,7 @@ package utils
 import (
 	"os"
 	"regexp"
+	"strings"
 )
 
 type FileInfo struct {
@@ -67,4 +68,13 @@ func FilesInDir(dir string, show_dirs bool, recursive bool) FileList {
 	}
 
 	return out
+}
+
+func FileExtension(file string) string {
+	temp := strings.Split(file, ".")
+	if len(temp) <= 1 {
+		return ""
+	}
+
+	return temp[len(temp)-1]
 }
