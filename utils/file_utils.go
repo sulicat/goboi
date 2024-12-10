@@ -75,6 +75,5 @@ func FileExtension(file string) string {
 	if len(temp) <= 1 {
 		return ""
 	}
-
 	return temp[len(temp)-1]
 }

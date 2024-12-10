@@ -1,5 +1,7 @@
 package colors
 
+import "fmt"
+
 // ANSI escape sequence colors
 const (
 	// Text Colors (Foreground)
@@ -45,3 +47,9 @@ const (
 	// Reset
 	Reset = "\033[0m"
 )
+
+func Color(r, g, b int) string {
+
+	str := fmt.Sprintf("\033[38;2;%d;%d;%dm", r, g, b)
+	return str
+}
