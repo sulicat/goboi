@@ -49,7 +49,6 @@ const (
 )
 
 func Color(r, g, b int) string {
-
 	str := fmt.Sprintf("\033[38;2;%d;%d;%dm", r, g, b)
 	return str
 }
