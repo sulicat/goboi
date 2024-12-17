@@ -16,8 +16,23 @@ import (
 
 type RGB [3]int // rgb
 
-type InputCommand struct {
+type KeyCommand struct {
 	Keycode int
+	Buffer  []byte
+}
+
+type MouseCommand struct {
+	IsMousePress   bool
+	IsMouseRelease bool
+	IsMouseMove    bool
+	IsScrollUp     bool
+	IsScrollDown   bool
+
+	MouseX int
+	MouseY int
+	Button int
+
+	Buffer []byte
 }
 
 type Term struct {
@@ -32,8 +47,8 @@ type Term struct {
 	old_state *term.State
 
 	// input channel
-	key_input_buff   chan InputCommand
-	mouse_input_buff chan InputCommand
+	key_input_buff   chan KeyCommand
+	mouse_input_buff chan MouseCommand
 }
 
 func Create(width int, height int) Term {
@@ -50,7 +65,8 @@ func Create(width int, height int) Term {
 	out.sb.Grow(out.width * out.height * 20)
 	out.SetOffset(0, 0)
 
-	out.key_input_buff = make(chan InputCommand, 10) // buffer 10 keys
+	out.key_input_buff = make(chan KeyCommand, 10)     // buffer 10 keys
+	out.mouse_input_buff = make(chan MouseCommand, 10) // buffer 10 moves
 
 	out.Start()
 	return out
@@ -85,12 +101,11 @@ func (t *Term) TermHeight() int {
 }
 
 // parse input ansi sequeces
-func (t *Term) parse(in InputCommand) {
-	// 3 is crt-c
-	if in.Keycode == 3 {
-		t.Close()
-	}
+func (t *Term) process_key_command(in KeyCommand) {
+}
 
+// parse input ansi sequeces
+func (t *Term) process_mouse_command(in MouseCommand) {
 }
 
 func (t *Term) InputLoop() {
@@ -98,7 +113,49 @@ func (t *Term) InputLoop() {
 	for {
 		n, _ := os.Stdin.Read(buf)
 		if n == 1 {
-			t.key_input_buff <- InputCommand{Keycode: int(buf[0])}
+
+			// make sure we can still escape out
+			input := KeyCommand{Keycode: int(buf[0]), Buffer: append([]byte(nil), buf[:n]...)}
+			if input.Keycode == 3 {
+				t.Close()
+			}
+
+			if len(t.key_input_buff) < cap(t.key_input_buff) {
+				t.key_input_buff <- input
+			}
+
+		} else if n > 3 {
+
+			prefix := string(buf[:3])
+			switch prefix {
+			case MouseInputPrefix:
+				// mouse input
+				input := MouseCommand{Buffer: append([]byte(nil), buf[:n]...)}
+				input.MouseX = int(buf[4])
+				input.MouseY = int(buf[5])
+
+				switch buf[3] {
+				case 97: // scroll up
+					input.IsScrollUp = true
+				case 96: // scroll down
+					input.IsScrollDown = true
+				case 67: // MouseMove
+					input.IsMouseMove = true
+				case 32:
+					input.IsMousePress = true
+					input.Button = 0
+				case 34:
+					input.IsMousePress = true
+					input.Button = 1
+				case 35:
+					input.IsMouseRelease = true
+				}
+
+				if len(t.mouse_input_buff) < cap(t.mouse_input_buff) {
+					t.mouse_input_buff <- input
+				}
+			}
+
 		}
 	}
 }
@@ -131,7 +188,17 @@ func (t *Term) Draw() {
 	for {
 		if len(t.key_input_buff) > 0 {
 			input := <-t.key_input_buff
-			t.parse(input)
+			t.process_key_command(input)
+		} else {
+			break
+		}
+	}
+
+	// flush mouse events
+	for {
+		if len(t.mouse_input_buff) > 0 {
+			input := <-t.mouse_input_buff
+			t.process_mouse_command(input)
 		} else {
 			break
 		}
@@ -152,6 +219,7 @@ func (t *Term) Draw() {
 		t.sb.WriteString(MoveCursor(t.start_x, t.start_y+y+1))
 		// t.sb.WriteString("\n")
 	}
+
 	t.writer.Write([]byte(t.sb.String()))
 	fmt.Fprint(t.writer, t.sb.String())
 	t.writer.Flush()
