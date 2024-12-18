@@ -171,7 +171,9 @@ func (t *Term) Start() {
 	}
 
 	// start a go routine that fills an input buffer
-	go t.InputLoop()
+	go func(t *Term) {
+		t.InputLoop()
+	}(t)
 
 	// enable mouse tracking
 	fmt.Print(EnableMouseTracking())
