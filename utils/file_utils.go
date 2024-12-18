@@ -77,3 +77,10 @@ func FileExtension(file string) string {
 	}
 	return temp[len(temp)-1]
 }
+
+func ExecutableDir() string {
+	path, _ := os.Executable()
+	li := strings.LastIndex(path, "/")
+	path = path[:li]
+	return path + "/"
+}
