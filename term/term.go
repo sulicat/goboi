@@ -178,6 +178,12 @@ func (t *Term) Start() {
 	// enable mouse tracking
 	fmt.Print(EnableMouseTracking())
 
+	// clear the terminal
+	t.sb.WriteString(Clear())
+	t.writer.Write([]byte(t.sb.String()))
+	fmt.Fprint(t.writer, t.sb.String())
+	t.writer.Flush()
+
 }
 func (t *Term) Close() {
 	fmt.Print(DisableMouseTracking())
