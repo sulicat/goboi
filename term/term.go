@@ -41,6 +41,45 @@ type Cell struct {
 	BGColor RGB
 	Char    string
 	Depth   int
+
+	cached      string
+	has_changed bool
+}
+
+func (c *Cell) Str() string {
+
+	if !c.has_changed {
+		return c.cached
+	}
+
+	// FG color, BG color, char
+	out := colors.Color(c.FGColor[0], c.FGColor[1], c.FGColor[2])
+	out += colors.ColorBG(c.BGColor[0], c.BGColor[1], c.BGColor[2])
+	out += c.Char
+	c.cached = out
+	return out
+}
+
+type FrameBuffer [][]Cell
+
+func (f *FrameBuffer) Make(width int, height int) {
+	*f = make([][]Cell, height)
+	for r := range height {
+		(*f)[r] = make([]Cell, width)
+	}
+}
+
+func (f *FrameBuffer) Overlay(other *FrameBuffer, x int, y int) {
+	f_r := y
+	f_c := x
+
+	for other_r := 0; other_r < len(*other); other_r++ {
+		for other_c := 0; other_c < len((*other)[other_r]); other_c++ {
+			(*f)[f_r][f_c] = (*other)[other_r][other_c]
+			f_c += 1
+		}
+		f_r += 1
+	}
 }
 
 type Term struct {
@@ -51,13 +90,16 @@ type Term struct {
 	framerate_s float32
 	fullScreen  bool
 
-	front_cells []Cell
-	back_cells  []Cell
+	front     FrameBuffer
+	back      FrameBuffer
+	draw_list []Renderable // pointers to renderables
 
 	sb               strings.Builder
 	writer           *bufio.Writer
 	old_state        *term.State
 	frame_rate_timer utils.WaitTimer
+	frame_cursor_x   int
+	frame_cursor_y   int
 
 	// input channel
 	key_input_buff   chan KeyCommand
@@ -69,16 +111,19 @@ type Term struct {
 
 func Create(width int, height int) Term {
 	out := Term{
-		width:       width,
-		height:      height,
-		start_x:     0,
-		start_y:     0,
-		framerate_s: 1 / 60.0,
-		fullScreen:  true,
+		width:          width,
+		height:         height,
+		start_x:        0,
+		start_y:        0,
+		framerate_s:    1 / 30.0,
+		fullScreen:     true,
+		frame_cursor_x: 0,
+		frame_cursor_y: 0,
 	}
 
-	out.front_cells = make([]Cell, out.width*out.height)
-	out.back_cells = make([]Cell, out.width*out.height)
+	out.front.Make(out.width, out.height)
+	out.back.Make(out.width, out.height)
+
 	out.writer = bufio.NewWriter(os.Stdout)
 	out.sb = strings.Builder{}
 	out.sb.Grow(out.width * out.height * 20)
@@ -87,6 +132,7 @@ func Create(width int, height int) Term {
 
 	out.key_input_buff = make(chan KeyCommand, 10)     // buffer 10 keys
 	out.mouse_input_buff = make(chan MouseCommand, 10) // buffer 10 moves
+	out.draw_list = []Renderable{}
 
 	out.Start()
 	return out
@@ -106,12 +152,13 @@ func (t *Term) Height() int {
 }
 
 func (t *Term) Resize(new_w int, new_h int) {
-	t.width = new_w
-	t.height = new_h
-
-	// resize the cell buffers
-	t.front_cells = make([]Cell, t.width*t.height)
-	t.back_cells = make([]Cell, t.width*t.height)
+	if new_w != t.width || new_h != t.height {
+		t.width = new_w
+		t.height = new_h
+		// resize the cell buffers
+		t.front.Make(t.width, t.height)
+		t.back.Make(t.width, t.height)
+	}
 }
 
 func (t *Term) TermWidth() int {
@@ -271,12 +318,15 @@ func (t *Term) Draw() {
 	// move the cursor
 	t.sb.WriteString(MoveCursor(t.start_x, t.start_y))
 
-	for y := range t.height {
-		for range t.width {
-			t.sb.WriteString(DrawBlock(0, 0, 0))
+	for r := range t.height {
+		for c := range t.width {
+			// t.sb.WriteString(DrawBlock(0, 255, 0))
+			t.sb.WriteString(t.front[r][c].Str())
 		}
-		t.sb.WriteString(MoveCursor(t.start_x, t.start_y+y+1))
-		// t.sb.WriteString("\n")
+		t.sb.WriteString(MoveCursor(
+			t.start_x,
+			t.start_y+r+1))
+
 	}
 
 	t.writer.Write([]byte(t.sb.String()))
