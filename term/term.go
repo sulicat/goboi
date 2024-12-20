@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/sulicat/goboi/colors"
+	"github.com/sulicat/goboi/utils"
 	"golang.org/x/term"
 )
 
@@ -35,35 +36,54 @@ type MouseCommand struct {
 	Buffer []byte
 }
 
-type Term struct {
-	width   int
-	height  int
-	start_x int
-	start_y int
-	pixels  []RGB
+type Cell struct {
+	FGColor RGB
+	BGColor RGB
+	Char    string
+	Depth   int
+}
 
-	sb        strings.Builder
-	writer    *bufio.Writer
-	old_state *term.State
+type Term struct {
+	width       int
+	height      int
+	start_x     int
+	start_y     int
+	framerate_s float32
+	fullScreen  bool
+
+	front_cells []Cell
+	back_cells  []Cell
+
+	sb               strings.Builder
+	writer           *bufio.Writer
+	old_state        *term.State
+	frame_rate_timer utils.WaitTimer
 
 	// input channel
 	key_input_buff   chan KeyCommand
 	mouse_input_buff chan MouseCommand
+
+	Mouse_x int
+	Mouse_y int
 }
 
 func Create(width int, height int) Term {
 	out := Term{
-		width:   width,
-		height:  height,
-		start_x: 0,
-		start_y: 0,
+		width:       width,
+		height:      height,
+		start_x:     0,
+		start_y:     0,
+		framerate_s: 1 / 60.0,
+		fullScreen:  true,
 	}
 
-	out.pixels = make([]RGB, width*height)
+	out.front_cells = make([]Cell, out.width*out.height)
+	out.back_cells = make([]Cell, out.width*out.height)
 	out.writer = bufio.NewWriter(os.Stdout)
 	out.sb = strings.Builder{}
 	out.sb.Grow(out.width * out.height * 20)
 	out.SetOffset(0, 0)
+	out.frame_rate_timer = utils.CreateWaitTimer(float64(out.framerate_s))
 
 	out.key_input_buff = make(chan KeyCommand, 10)     // buffer 10 keys
 	out.mouse_input_buff = make(chan MouseCommand, 10) // buffer 10 moves
@@ -88,6 +108,10 @@ func (t *Term) Height() int {
 func (t *Term) Resize(new_w int, new_h int) {
 	t.width = new_w
 	t.height = new_h
+
+	// resize the cell buffers
+	t.front_cells = make([]Cell, t.width*t.height)
+	t.back_cells = make([]Cell, t.width*t.height)
 }
 
 func (t *Term) TermWidth() int {
@@ -100,12 +124,42 @@ func (t *Term) TermHeight() int {
 	return h
 }
 
+func (t *Term) SetFullscreen(is_fullscreen bool) {
+	t.fullScreen = is_fullscreen
+}
+
+func (t *Term) SetFramerate(framerate_s float32) {
+	t.framerate_s = framerate_s
+	t.frame_rate_timer.SetDuration(float64(t.framerate_s))
+}
+
+func (t *Term) Step() {
+
+	// TODO: Suli, you need to capture terminal resize events, this is because
+	// if you are not fullscreen. the terminal needs to clear during resize, otherwise you get weird artifacts
+	if t.frame_rate_timer.Check() {
+		t.frame_rate_timer.Reset()
+		if t.fullScreen {
+			t.Resize(t.TermWidth(), t.TermHeight())
+		} else {
+			t.Resize(t.width, t.height)
+		}
+
+		t.Draw()
+	}
+
+}
+
 // parse input ansi sequeces
 func (t *Term) process_key_command(in KeyCommand) {
 }
 
 // parse input ansi sequeces
 func (t *Term) process_mouse_command(in MouseCommand) {
+	t.Mouse_x = in.MouseX
+	t.Mouse_y = in.MouseY
+
+	// TODO: suli imgui like click handling
 }
 
 func (t *Term) InputLoop() {
@@ -131,8 +185,8 @@ func (t *Term) InputLoop() {
 			case MouseInputPrefix:
 				// mouse input
 				input := MouseCommand{Buffer: append([]byte(nil), buf[:n]...)}
-				input.MouseX = int(buf[4])
-				input.MouseY = int(buf[5])
+				input.MouseX = int(buf[4]) - 33
+				input.MouseY = int(buf[5]) - 33
 
 				switch buf[3] {
 				case 97: // scroll up
@@ -214,15 +268,12 @@ func (t *Term) Draw() {
 
 	t.sb.Reset()
 
-	// TODO suli: clearing bad, keeps history
-	//t.sb.WriteString(Clear())
-
 	// move the cursor
 	t.sb.WriteString(MoveCursor(t.start_x, t.start_y))
 
 	for y := range t.height {
 		for range t.width {
-			t.sb.WriteString(DrawBlock(0, 0, 255))
+			t.sb.WriteString(DrawBlock(0, 0, 0))
 		}
 		t.sb.WriteString(MoveCursor(t.start_x, t.start_y+y+1))
 		// t.sb.WriteString("\n")
