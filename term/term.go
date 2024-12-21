@@ -75,7 +75,14 @@ func (f *FrameBuffer) Overlay(other *FrameBuffer, x int, y int) {
 
 	for other_r := 0; other_r < len(*other); other_r++ {
 		for other_c := 0; other_c < len((*other)[other_r]); other_c++ {
-			(*f)[f_r][f_c] = (*other)[other_r][other_c]
+
+			if f_r >= 0 && f_r < len(*f) {
+				if f_c >= 0 && f_c < len((*f)[f_r]) {
+					// fmt.Printf("%d:%d   %d:%d\n", f_r, len(*f), f_c, len((*f)[f_r]))
+					(*f)[f_r][f_c] = (*other)[other_r][other_c]
+				}
+			}
+
 			f_c += 1
 		}
 		f_r += 1
@@ -98,8 +105,8 @@ type Term struct {
 	writer           *bufio.Writer
 	old_state        *term.State
 	frame_rate_timer utils.WaitTimer
-	frame_cursor_x   int
-	frame_cursor_y   int
+	cursor_x         int
+	cursor_y         int
 
 	// input channel
 	key_input_buff   chan KeyCommand
@@ -107,18 +114,21 @@ type Term struct {
 
 	Mouse_x int
 	Mouse_y int
+
+	term_state        TermState
+	term_state_inital TermState
 }
 
 func Create(width int, height int) Term {
 	out := Term{
-		width:          width,
-		height:         height,
-		start_x:        0,
-		start_y:        0,
-		framerate_s:    1 / 30.0,
-		fullScreen:     true,
-		frame_cursor_x: 0,
-		frame_cursor_y: 0,
+		width:       width,
+		height:      height,
+		start_x:     0,
+		start_y:     0,
+		framerate_s: 1 / 30.0,
+		fullScreen:  true,
+		cursor_x:    0,
+		cursor_y:    0,
 	}
 
 	out.front.Make(out.width, out.height)
@@ -134,8 +144,25 @@ func Create(width int, height int) Term {
 	out.mouse_input_buff = make(chan MouseCommand, 10) // buffer 10 moves
 	out.draw_list = []Renderable{}
 
+	out.SetColor(RGB{255, 255, 255})
+	out.SetBackgroundColor(RGB{0, 0, 0})
+	out.term_state_inital = out.term_state
+
 	out.Start()
 	return out
+}
+
+func (t *Term) SetColor(c RGB) {
+	t.term_state.fg_color = c
+}
+
+func (t *Term) SetBackgroundColor(c RGB) {
+	t.term_state.bg_color = c
+}
+
+func (t *Term) SameLine() {
+	// next item to be added is same line
+	t.term_state.same_line = true
 }
 
 func (t *Term) SetOffset(x, y int) {
@@ -155,9 +182,19 @@ func (t *Term) Resize(new_w int, new_h int) {
 	if new_w != t.width || new_h != t.height {
 		t.width = new_w
 		t.height = new_h
+
 		// resize the cell buffers
 		t.front.Make(t.width, t.height)
 		t.back.Make(t.width, t.height)
+
+		//clear the terminal
+		t.sb.Reset()
+		t.sb.WriteString(colors.ColorBG(0, 0, 0))
+		t.sb.WriteString(Clear())
+		t.writer.Write([]byte(t.sb.String()))
+		fmt.Fprint(t.writer, t.sb.String())
+		t.writer.Flush()
+
 	}
 }
 
@@ -181,9 +218,11 @@ func (t *Term) SetFramerate(framerate_s float32) {
 }
 
 func (t *Term) Step() {
+	t.cursor_x = 0
+	t.cursor_y = 0
 
-	// TODO: Suli, you need to capture terminal resize events, this is because
-	// if you are not fullscreen. the terminal needs to clear during resize, otherwise you get weird artifacts
+	t.term_state = t.term_state_inital
+
 	if t.frame_rate_timer.Check() {
 		t.frame_rate_timer.Reset()
 		if t.fullScreen {
@@ -280,6 +319,7 @@ func (t *Term) Start() {
 	fmt.Print(EnableMouseTracking())
 
 	// clear the terminal
+	t.sb.Reset()
 	t.sb.WriteString(Clear())
 	t.writer.Write([]byte(t.sb.String()))
 	fmt.Fprint(t.writer, t.sb.String())
