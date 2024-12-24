@@ -1,5 +1,7 @@
 package utils
 
+import "cmp"
+
 func First[T any](first T, rest ...any) T {
 	return first
 }
@@ -21,6 +23,17 @@ func ForEach[T any](in []T, cb func(T)) {
 	for _, val := range in {
 		cb(val)
 	}
+}
+
+func MaxIndex[T cmp.Ordered](in []T) int {
+	out_i := 0
+	for i, v := range in {
+		if v > in[out_i] {
+			out_i = i
+		}
+	}
+
+	return out_i
 }
 
 func ArrayInsert[T any](slice []T, index int, value T) []T {
