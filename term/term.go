@@ -89,6 +89,18 @@ func (f *FrameBuffer) Overlay(other *FrameBuffer, x int, y int) {
 	}
 }
 
+func CheckInside(
+	px int, py int,
+	cx int, cy int, cw int, ch int,
+) bool {
+	if px >= cx && px < cx+cw {
+		if py >= cy && py < cy+ch {
+			return true
+		}
+	}
+	return false
+}
+
 type Term struct {
 	width       int
 	height      int
@@ -97,9 +109,8 @@ type Term struct {
 	framerate_s float32
 	fullScreen  bool
 
-	front     FrameBuffer
-	back      FrameBuffer
-	draw_list []Renderable // pointers to renderables
+	front FrameBuffer
+	back  FrameBuffer
 
 	sb               strings.Builder
 	writer           *bufio.Writer
@@ -112,8 +123,8 @@ type Term struct {
 	key_input_buff   chan KeyCommand
 	mouse_input_buff chan MouseCommand
 
-	Mouse_x int
-	Mouse_y int
+	MouseX int
+	MouseY int
 
 	term_state        TermState
 	term_state_inital TermState
@@ -142,11 +153,12 @@ func Create(width int, height int) Term {
 
 	out.key_input_buff = make(chan KeyCommand, 10)     // buffer 10 keys
 	out.mouse_input_buff = make(chan MouseCommand, 10) // buffer 10 moves
-	out.draw_list = []Renderable{}
 
 	out.SetColor(RGB{255, 255, 255})
 	out.SetBackgroundColor(RGB{0, 0, 0})
+
 	out.term_state_inital = out.term_state
+	out.term_state_inital.MouseButton = -1 // initialize to no button pressed
 
 	out.Start()
 	return out
@@ -242,10 +254,13 @@ func (t *Term) process_key_command(in KeyCommand) {
 
 // parse input ansi sequeces
 func (t *Term) process_mouse_command(in MouseCommand) {
-	t.Mouse_x = in.MouseX
-	t.Mouse_y = in.MouseY
+	t.MouseX = in.MouseX
+	t.MouseY = in.MouseY
 
 	// TODO: suli imgui like click handling
+
+	t.term_state.MouseX = t.MouseX
+	t.term_state.MouseY = t.MouseY
 }
 
 func (t *Term) InputLoop() {
