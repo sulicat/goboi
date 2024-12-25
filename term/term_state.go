@@ -15,6 +15,10 @@ type TermState struct {
 	MouseY      int
 	MouseButton int
 
+	// eventually handle the other keys,
+	// either [3]int or different vals
+	MouseClicked bool
+
 	cursor_x      int
 	cursor_y      int
 	cursor_x_prev int

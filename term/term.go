@@ -260,9 +260,16 @@ func (t *Term) process_mouse_command(in MouseCommand) {
 	t.term_state.MouseX = in.MouseX
 	t.term_state.MouseY = in.MouseY
 
-	// TODO: think about this? this only works if we process every input and draw the frame after
-	// other option is to latch a mouse press
-	// or maybe fill a buffer of mouse presses
+	t.term_state.MouseClicked = false
+
+	// left click
+	if in.Button == 0 {
+		// if we haven;t registered a click and the mouse is down, register a click
+		if in.IsMousePress && t.term_state.MouseButton == -1 {
+			t.term_state.MouseClicked = true
+		}
+	}
+
 	if in.IsMousePress {
 		t.term_state.MouseButton = in.Button
 	} else {
