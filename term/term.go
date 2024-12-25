@@ -69,6 +69,16 @@ func (f *FrameBuffer) Make(width int, height int) {
 	}
 }
 
+func (f *FrameBuffer) Clear() {
+	for r := range len(*f) {
+		for c := range len((*f)[r]) {
+			(*f)[r][c].has_changed = true
+			(*f)[r][c].Char = ""
+			(*f)[r][c].BGColor = RGB{0, 0, 0}
+		}
+	}
+}
+
 func (f *FrameBuffer) Overlay(other *FrameBuffer, x int, y int) {
 	f_r := y
 	f_c := x
@@ -121,9 +131,6 @@ type Term struct {
 	// input channel
 	key_input_buff   chan KeyCommand
 	mouse_input_buff chan MouseCommand
-
-	MouseX int
-	MouseY int
 
 	term_state        TermState
 	term_state_inital TermState
@@ -250,12 +257,17 @@ func (t *Term) process_key_command(in KeyCommand) {
 // parse input ansi sequeces
 func (t *Term) process_mouse_command(in MouseCommand) {
 
-	t.MouseX = in.MouseX
-	t.MouseY = in.MouseY
+	t.term_state.MouseX = in.MouseX
+	t.term_state.MouseY = in.MouseY
 
-	// TODO: suli imgui like click handling
-	t.term_state.MouseX = t.MouseX
-	t.term_state.MouseY = t.MouseY
+	// TODO: think about this? this only works if we process every input and draw the frame after
+	// other option is to latch a mouse press
+	// or maybe fill a buffer of mouse presses
+	if in.IsMousePress {
+		t.term_state.MouseButton = in.Button
+	} else {
+		t.term_state.MouseButton = -1
+	}
 
 }
 
@@ -388,5 +400,8 @@ func (t *Term) Draw() {
 	t.writer.Write([]byte(t.sb.String()))
 	fmt.Fprint(t.writer, t.sb.String())
 	t.writer.Flush()
+
+	// TODO: suli, can we fix this??? slow and busts the caching
+	t.front.Clear()
 
 }

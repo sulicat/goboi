@@ -41,5 +41,18 @@ func (t *Term) Button(s string) bool {
 		draw_pos_x, draw_pos_y)
 	t.term_state.update_cursor_pos(b.Width(), b.Height())
 
-	return true
+	// handle the clicks inside the button
+	// TODO: this is trash, debounce please? idealy not at this level, somewhere higher up that can be re-used
+	// maybe a good solution is "is_clicked" vs "is_pressed"
+	if t.term_state.MouseButton == 0 {
+		if CheckInside(
+			t.term_state.MouseX, t.term_state.MouseY,
+			draw_pos_x, draw_pos_y,
+			b.Width(), b.Height(),
+		) {
+			return true
+		}
+	}
+
+	return false
 }
