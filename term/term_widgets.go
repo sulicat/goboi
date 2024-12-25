@@ -6,41 +6,40 @@ type Renderable interface {
 	Render() *FrameBuffer
 }
 
-// TODO: suli figure out the SameLine alignment properly
-
 func (t *Term) Label(s string) {
+
 	// create a label and overlay its framebuffer into the main one
+	draw_pos_x, draw_pos_y := t.term_state.get_cursor_pos()
+
 	l := CreateLabel(s)
 	l_buff := l.Render(&t.term_state)
+
 	t.front.Overlay(
 		l_buff,
-		t.term_state.CursorX, t.term_state.CursorY)
+		draw_pos_x, draw_pos_y)
 
-	// if t.term_state.same_line {
-	// 	t.term_state.same_line = false
-	// 	t.term_state.CursorX += l.Width()
-	// } else {
-	t.term_state.CursorY += l.Height()
-	t.term_state.CursorX = 0
-	// }
+	t.term_state.update_cursor_pos(l.Width(), l.Height())
 }
 
 func (t *Term) Button(s string) bool {
 
+	// TODO: suli ... Bad design here
+	// It's silly to look at cursor pos to figure out where we drew
+	// the button for mouse input
+
 	// get the state for this button, whether we are hovering or something of the like
+	draw_pos_x, draw_pos_y := t.term_state.get_cursor_pos()
+
 	b := CreateButton(s)
-	b_buff := b.Render(&t.term_state)
+	b_buff := b.Render(
+		&t.term_state,
+		draw_pos_x, draw_pos_y,
+	)
+
 	t.front.Overlay(
 		b_buff,
-		t.term_state.CursorX, t.term_state.CursorY)
-
-	// if t.term_state.same_line {
-	// 	t.term_state.same_line = false
-	// 	t.term_state.CursorX += b.Width()
-	// } else {
-	t.term_state.CursorY += b.Height()
-	t.term_state.CursorX = 0
-	// }
+		draw_pos_x, draw_pos_y)
+	t.term_state.update_cursor_pos(b.Width(), b.Height())
 
 	return true
 }

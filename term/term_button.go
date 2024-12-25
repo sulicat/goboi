@@ -11,7 +11,13 @@ func (b *Button) Height() int {
 	return 3
 }
 
-func (b *Button) Render(state *TermState) *FrameBuffer {
+// offset is to handle input, it assumes it will be overlayed
+// at offset_x, offset_y
+func (b *Button) Render(
+	state *TermState,
+	offset_x int, offset_y int,
+) *FrameBuffer {
+
 	out := FrameBuffer{}
 	out.Make(b.Width(), b.Height())
 
@@ -22,7 +28,7 @@ func (b *Button) Render(state *TermState) *FrameBuffer {
 
 	if CheckInside(
 		state.MouseX, state.MouseY,
-		state.CursorX, state.CursorY,
+		offset_x, offset_y,
 		b.Width(), b.Height(),
 	) {
 		bg = RGB{255, 255, 0}

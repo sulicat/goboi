@@ -171,7 +171,7 @@ func (t *Term) SetBackgroundColor(c RGB) {
 
 func (t *Term) SameLine() {
 	// next item to be added is same line
-	t.term_state.same_line = true
+	t.term_state.SameLine()
 }
 
 func (t *Term) SetOffset(x, y int) {
@@ -228,8 +228,7 @@ func (t *Term) SetFramerate(framerate_s float32) {
 
 func (t *Term) Step() {
 
-	t.term_state.CursorX = 0
-	t.term_state.CursorY = 0
+	t.term_state.reset_cursor_pos()
 
 	if t.frame_rate_timer.Check() {
 		t.frame_rate_timer.Reset()
