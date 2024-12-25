@@ -9,4 +9,7 @@ type TermState struct {
 	MouseX      int
 	MouseY      int
 	MouseButton int
+
+	CursorX int
+	CursorY int
 }

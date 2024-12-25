@@ -86,6 +86,7 @@ func (f *FrameBuffer) Overlay(other *FrameBuffer, x int, y int) {
 			f_c += 1
 		}
 		f_r += 1
+		f_c = x
 	}
 }
 
@@ -116,8 +117,6 @@ type Term struct {
 	writer           *bufio.Writer
 	old_state        *term.State
 	frame_rate_timer utils.WaitTimer
-	cursor_x         int
-	cursor_y         int
 
 	// input channel
 	key_input_buff   chan KeyCommand
@@ -138,8 +137,6 @@ func Create(width int, height int) Term {
 		start_y:     0,
 		framerate_s: 1 / 30.0,
 		fullScreen:  true,
-		cursor_x:    0,
-		cursor_y:    0,
 	}
 
 	out.front.Make(out.width, out.height)
@@ -230,10 +227,9 @@ func (t *Term) SetFramerate(framerate_s float32) {
 }
 
 func (t *Term) Step() {
-	t.cursor_x = 0
-	t.cursor_y = 0
 
-	t.term_state = t.term_state_inital
+	t.term_state.CursorX = 0
+	t.term_state.CursorY = 0
 
 	if t.frame_rate_timer.Check() {
 		t.frame_rate_timer.Reset()
@@ -254,13 +250,14 @@ func (t *Term) process_key_command(in KeyCommand) {
 
 // parse input ansi sequeces
 func (t *Term) process_mouse_command(in MouseCommand) {
+
 	t.MouseX = in.MouseX
 	t.MouseY = in.MouseY
 
 	// TODO: suli imgui like click handling
-
 	t.term_state.MouseX = t.MouseX
 	t.term_state.MouseY = t.MouseY
+
 }
 
 func (t *Term) InputLoop() {
@@ -375,13 +372,18 @@ func (t *Term) Draw() {
 
 	for r := range t.height {
 		for c := range t.width {
-			// t.sb.WriteString(DrawBlock(0, 255, 0))
+
+			// if we have an empty cell, make it really empty
+			if t.front[r][c].Char == "" {
+				t.front[r][c].Char = " "
+				t.front[r][c].has_changed = true
+			}
+
 			t.sb.WriteString(t.front[r][c].Str())
 		}
 		t.sb.WriteString(MoveCursor(
 			t.start_x,
 			t.start_y+r+1))
-
 	}
 
 	t.writer.Write([]byte(t.sb.String()))
