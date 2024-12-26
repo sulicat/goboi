@@ -162,7 +162,7 @@ func Create(width int, height int) Term {
 	out.SetBackgroundColor(RGB{0, 0, 0})
 
 	out.term_state_inital = out.term_state
-	out.term_state_inital.MouseButton = -1 // initialize to no button pressed
+	out.term_state_inital.MouseDown = false
 
 	out.Start()
 	return out
@@ -260,21 +260,17 @@ func (t *Term) process_mouse_command(in MouseCommand) {
 	t.term_state.MouseX = in.MouseX
 	t.term_state.MouseY = in.MouseY
 
-	t.term_state.MouseClicked = false
+	// on rising edge, the clicked signal is high
+	if in.IsMousePress && !t.term_state.last_mouse_down {
 
-	// left click
-	if in.Button == 0 {
-		// if we haven;t registered a click and the mouse is down, register a click
-		if in.IsMousePress && t.term_state.MouseButton == -1 {
-			t.term_state.MouseClicked = true
-		}
+		t.term_state.MouseClicked = true
+
+	} else if t.term_state.MouseClicked {
+		// otherwise, we are gonna trigger the click low
+		t.term_state.MouseClicked = false
 	}
 
-	if in.IsMousePress {
-		t.term_state.MouseButton = in.Button
-	} else {
-		t.term_state.MouseButton = -1
-	}
+	t.term_state.last_mouse_down = in.IsMousePress
 
 }
 

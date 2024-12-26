@@ -7,24 +7,21 @@ const (
 
 type TermState struct {
 	// render state
-	bg_color       RGB
-	fg_color       RGB
-	alignment_mode int
+	MouseX       int
+	MouseY       int
+	MouseDown    bool // if mouse is held this is held true
+	MouseClicked bool // if mouse is held, this is triggered true for 1 step. Rising edge of mouse down
 
-	MouseX      int
-	MouseY      int
-	MouseButton int
-
-	// eventually handle the other keys,
-	// either [3]int or different vals
-	MouseClicked bool
-
-	cursor_x      int
-	cursor_y      int
-	cursor_x_prev int
-	cursor_y_prev int
-	last_drawn_w  int
-	last_drawn_h  int
+	bg_color        RGB
+	fg_color        RGB
+	alignment_mode  int
+	cursor_x        int
+	cursor_y        int
+	cursor_x_prev   int
+	cursor_y_prev   int
+	last_drawn_w    int
+	last_drawn_h    int
+	last_mouse_down bool
 }
 
 func (ts *TermState) reset_cursor_pos() {
