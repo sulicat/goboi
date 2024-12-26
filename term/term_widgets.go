@@ -75,3 +75,20 @@ func (t *Term) CheckBox(s string, checked *bool) {
 		}
 	}
 }
+
+func (t *Term) InputFloat(val *float64) {
+
+	// get the state for this button, whether we are hovering or something of the like
+	draw_pos_x, draw_pos_y := t.term_state.get_cursor_pos()
+
+	b := CreateInputFloat(*val)
+	b_buff := b.Render(
+		&t.term_state,
+		draw_pos_x, draw_pos_y,
+	)
+
+	t.front.Overlay(
+		b_buff,
+		draw_pos_x, draw_pos_y)
+	t.term_state.update_cursor_pos(b.Width(), b.Height())
+}
