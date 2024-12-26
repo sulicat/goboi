@@ -237,6 +237,8 @@ func (t *Term) Step() {
 
 	t.term_state.reset_cursor_pos()
 
+	t.update_input_state()
+
 	if t.frame_rate_timer.Check() {
 		t.frame_rate_timer.Reset()
 		if t.fullScreen {
@@ -259,19 +261,21 @@ func (t *Term) process_mouse_command(in MouseCommand) {
 
 	t.term_state.MouseX = in.MouseX
 	t.term_state.MouseY = in.MouseY
+	t.term_state.MouseDown = in.IsMousePress
+}
+
+// TODO: Fix me, bad idea function, dealing with the input flush the wrong way
+func (t *Term) update_input_state() {
 
 	// on rising edge, the clicked signal is high
-	if in.IsMousePress && !t.term_state.last_mouse_down {
-
+	if t.term_state.MouseDown && !t.term_state.last_mouse_down {
 		t.term_state.MouseClicked = true
-
 	} else if t.term_state.MouseClicked {
 		// otherwise, we are gonna trigger the click low
 		t.term_state.MouseClicked = false
 	}
 
-	t.term_state.last_mouse_down = in.IsMousePress
-
+	t.term_state.last_mouse_down = t.term_state.MouseDown
 }
 
 func (t *Term) InputLoop() {
@@ -404,7 +408,7 @@ func (t *Term) Draw() {
 	fmt.Fprint(t.writer, t.sb.String())
 	t.writer.Flush()
 
-	// TODO: suli, can we fix this??? slow and busts the caching
+	// TODO: suli, can we fix this??? slow and busts the cache
 	t.front.Clear()
 
 }
