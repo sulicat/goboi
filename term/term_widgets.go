@@ -23,10 +23,6 @@ func (t *Term) Label(s string) {
 
 func (t *Term) Button(s string) bool {
 
-	// TODO: suli ... Bad design here
-	// It's silly to look at cursor pos to figure out where we drew
-	// the button for mouse input
-
 	// get the state for this button, whether we are hovering or something of the like
 	draw_pos_x, draw_pos_y := t.term_state.get_cursor_pos()
 
@@ -41,9 +37,6 @@ func (t *Term) Button(s string) bool {
 		draw_pos_x, draw_pos_y)
 	t.term_state.update_cursor_pos(b.Width(), b.Height())
 
-	// handle the clicks inside the button
-	// TODO: this is trash, debounce please? idealy not at this level, somewhere higher up that can be re-used
-	// maybe a good solution is "is_clicked" vs "is_pressed"
 	if t.term_state.MouseClicked {
 		if CheckInside(
 			t.term_state.MouseX, t.term_state.MouseY,

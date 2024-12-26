@@ -25,9 +25,6 @@ func (b *Button) Render(
 	bg := RGB{0, 0, 0}
 	fg := RGB{255, 255, 255}
 
-	// fmt.Println(state.MouseX, state.MouseY,
-	// 	state.CursorX, state.CursorY)
-
 	if CheckInside(
 		state.MouseX, state.MouseY,
 		offset_x, offset_y,
@@ -47,6 +44,7 @@ func (b *Button) Render(
 
 	out[0][0].Char = "+"
 	out[0][b.Width()-1].Char = "+"
+
 	out[2][0].Char = "+"
 	out[2][b.Width()-1].Char = "+"
 
@@ -58,16 +56,6 @@ func (b *Button) Render(
 		out[1][x].Char = string(b.val[x-1])
 		out[2][x].Char = "-"
 	}
-
-	/*
-		for x := range b.Width() {
-			for y := range b.Height() {
-				out[y][x].has_changed = true
-				out[y][x].BGColor = bg
-				out[y][x].Char = " "
-				out[y][x].FGColor = RGB{255, 255, 255}
-			}
-		}*/
 
 	return &out
 
