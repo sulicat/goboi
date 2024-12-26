@@ -1,10 +1,11 @@
 package term
 
 type Button struct {
+	val string
 }
 
 func (b *Button) Width() int {
-	return 5
+	return len(b.val) + 2
 }
 
 func (b *Button) Height() int {
@@ -21,7 +22,8 @@ func (b *Button) Render(
 	out := FrameBuffer{}
 	out.Make(b.Width(), b.Height())
 
-	bg := RGB{255, 0, 0}
+	bg := RGB{0, 0, 0}
+	fg := RGB{255, 255, 255}
 
 	// fmt.Println(state.MouseX, state.MouseY,
 	// 	state.CursorX, state.CursorY)
@@ -31,24 +33,48 @@ func (b *Button) Render(
 		offset_x, offset_y,
 		b.Width(), b.Height(),
 	) {
-		bg = RGB{255, 255, 0}
+		bg = RGB{0, 0, 0}
+		fg = RGB{255, 0, 0}
 	}
 
 	for x := range b.Width() {
 		for y := range b.Height() {
 			out[y][x].has_changed = true
 			out[y][x].BGColor = bg
-			out[y][x].Char = " "
-			out[y][x].FGColor = RGB{255, 255, 255}
+			out[y][x].FGColor = fg
 		}
 	}
+
+	out[0][0].Char = "+"
+	out[0][b.Width()-1].Char = "+"
+	out[2][0].Char = "+"
+	out[2][b.Width()-1].Char = "+"
+
+	out[1][0].Char = "|"
+	out[1][b.Width()-1].Char = "|"
+
+	for x := 1; x < b.Width()-1; x++ {
+		out[0][x].Char = "-"
+		out[1][x].Char = string(b.val[x-1])
+		out[2][x].Char = "-"
+	}
+
+	/*
+		for x := range b.Width() {
+			for y := range b.Height() {
+				out[y][x].has_changed = true
+				out[y][x].BGColor = bg
+				out[y][x].Char = " "
+				out[y][x].FGColor = RGB{255, 255, 255}
+			}
+		}*/
 
 	return &out
 
 }
 
 func CreateButton(s string) Button {
-	out := Button{}
+	out := Button{val: " " + s + " "}
 
 	return out
 }
