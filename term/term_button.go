@@ -61,6 +61,23 @@ func (b *Button) Render(
 
 }
 
+func (b *Button) IsClicked(
+	state *TermState,
+	offset_x int, offset_y int,
+) bool {
+
+	if state.MouseClicked {
+		if CheckInside(
+			state.MouseX, state.MouseY,
+			offset_x, offset_y,
+			b.Width(), b.Height(),
+		) {
+			return true
+		}
+	}
+	return false
+}
+
 func CreateButton(s string) Button {
 	out := Button{val: " " + s + " "}
 

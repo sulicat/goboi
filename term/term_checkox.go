@@ -57,6 +57,23 @@ func (b *CheckBox) Render(
 
 }
 
+func (b *CheckBox) IsClicked(
+	state *TermState,
+	offset_x int, offset_y int,
+) bool {
+
+	if state.MouseClicked {
+		if CheckInside(
+			state.MouseX, state.MouseY,
+			offset_x, offset_y,
+			b.Width(), b.Height(),
+		) {
+			return true
+		}
+	}
+	return false
+}
+
 func CreateCheckBox(s string, checked bool) CheckBox {
 	out := CheckBox{val: s, checked: checked}
 

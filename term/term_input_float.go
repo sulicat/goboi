@@ -3,8 +3,11 @@ package term
 import "fmt"
 
 type InputFloat struct {
-	val     float64
-	val_str string
+	val             float64
+	val_str         string
+	is_clicked_up   bool
+	is_clicked_down bool
+	is_clicked_text bool
 }
 
 func (b *InputFloat) Width() int {
@@ -46,6 +49,39 @@ func (b *InputFloat) Render(
 		}
 	}
 
+	text_color := RGB{255, 255, 255}
+
+	// top arrow
+	if b.CheckInsideChar(
+		0, b.Width()-1,
+		state,
+		offset_x, offset_y,
+	) {
+
+		out[0][b.Width()-1].FGColor = RGB{255, 0, 0}
+		b.is_clicked_up = state.MouseClicked
+
+		// bot arrow
+	} else if b.CheckInsideChar(
+		2, b.Width()-1,
+		state,
+		offset_x, offset_y,
+	) {
+
+		out[2][b.Width()-1].FGColor = RGB{255, 0, 0}
+		b.is_clicked_down = state.MouseClicked
+
+		// text
+	} else if CheckInside(
+		state.MouseX, state.MouseY,
+		offset_x, offset_y,
+		b.Width()-1, b.Height(),
+	) {
+		text_color = RGB{255, 0, 0}
+		b.is_clicked_text = state.MouseClicked
+
+	}
+
 	out[0][0].Char = CharTL
 	out[1][0].Char = CharV
 	out[2][0].Char = CharBL
@@ -57,11 +93,35 @@ func (b *InputFloat) Render(
 	for i, c := range b.val_str {
 		out[0][i+1].Char = CharH
 		out[1][i+1].Char = string(c)
+		out[1][i+1].FGColor = text_color
 		out[2][i+1].Char = CharH
 	}
 
 	return &out
 
+}
+
+func (b *InputFloat) IsClickedUp() bool {
+	return b.is_clicked_up
+}
+
+func (b *InputFloat) IsClickedDown() bool {
+	return b.is_clicked_down
+}
+
+func (b *InputFloat) IsClickedText() bool {
+	return b.is_clicked_text
+}
+
+func (b *InputFloat) CheckInsideChar(
+	char_r int, char_c int,
+	state *TermState,
+	offset_x int, offset_y int,
+) bool {
+	if state.MouseX == char_c+offset_x && state.MouseY == char_r+offset_y {
+		return true
+	}
+	return false
 }
 
 func CreateInputFloat(val float64) InputFloat {
