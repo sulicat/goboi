@@ -8,6 +8,7 @@ type InputFloat struct {
 	is_clicked_up   bool
 	is_clicked_down bool
 	is_clicked_text bool
+	state           *State
 }
 
 func (b *InputFloat) Width() int {
@@ -124,8 +125,15 @@ func (b *InputFloat) CheckInsideChar(
 	return false
 }
 
-func CreateInputFloat(val float64) InputFloat {
-	out := InputFloat{val: val}
+func CreateInputFloat(val float64, state *State) InputFloat {
+	// we create one based on the state
+	// if the widget is being edited, use memory to initialize
+	// editing := (*state)["is_editing"]
+	// if editing {
+	// 	val = (*state)["temp_val"]
+	// }
+
+	out := InputFloat{val: val, state: state}
 	out.val_str = fmt.Sprintf("%.3f", val)
 
 	return out

@@ -134,6 +134,9 @@ type Term struct {
 
 	term_state        TermState
 	term_state_inital TermState
+
+	WidgetStates map[int]*State // ID to state pointer
+
 }
 
 func Create(width int, height int) Term {
@@ -163,6 +166,7 @@ func Create(width int, height int) Term {
 
 	out.term_state_inital = out.term_state
 	out.term_state_inital.MouseDown = false
+	out.WidgetStates = map[int]*State{}
 
 	out.Start()
 	return out
