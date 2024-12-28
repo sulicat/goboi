@@ -1,5 +1,9 @@
 package term
 
+import (
+	"slices"
+)
+
 // TODO: suli, things like 2 row alignment, grid, etc etc
 const (
 	AlignmentNormal int = iota
@@ -11,6 +15,9 @@ type TermState struct {
 	MouseY       int
 	MouseDown    bool // if mouse is held this is held true
 	MouseClicked bool // if mouse is held, this is triggered true for 1 step. Rising edge of mouse down
+
+	KeysDown    []int // keys held down on this step
+	KeysClicked []int // keys rising edge this step
 
 	bg_color        RGB
 	fg_color        RGB
@@ -57,4 +64,16 @@ func (ts *TermState) update_cursor_pos(added_w int, added_h int) {
 		ts.cursor_y += added_h
 	}
 
+}
+
+func (ts *TermState) NewKey(code int) {
+	// if they key is not in the down buffer add it
+	if !slices.Contains(ts.KeysDown, code) {
+		ts.KeysDown = append(ts.KeysDown, code)
+	}
+}
+
+func (ts *TermState) Step() {
+	ts.KeysClicked = []int{}
+	ts.KeysDown = []int{}
 }

@@ -2,6 +2,7 @@ package term
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/sulicat/goboi/container"
 )
@@ -46,6 +47,24 @@ func (b *InputFloat) Render(
 	}
 
 	text_color := RGB{255, 255, 255}
+
+	// if we are in edit mode and the user presses keys,
+	// add the keys to the float
+	if container.AnyStoreGetAs[bool](b.store, "is_editing") {
+		// get the current val as a string
+		float_val := container.AnyStoreGetAs[float64](b.store, "temporary_value")
+		val := fmt.Sprintf("%f", float_val)
+
+		for _, key := range state.KeysDown {
+			if key >= 48 && key <= 57 {
+				// check if we are adding a key
+				val += string(rune(key))
+			}
+		}
+
+		final_val, _ := strconv.ParseFloat(val, 64)
+		b.store.Store("temporary_value", final_val)
+	}
 
 	// top arrow
 	if b.CheckInsideChar(
@@ -102,7 +121,6 @@ func (b *InputFloat) Render(
 	}
 
 	return &out
-
 }
 
 func (b *InputFloat) IsClickedUp() bool {
@@ -133,7 +151,7 @@ func CreateInputFloat(val float64, store *container.AnyStore) InputFloat {
 	// if the widget is being edited, use memory to initialize
 
 	if container.AnyStoreGetAs[bool](store, "is_editing") {
-		val = container.AnyStoreGetAs[float64](store, "temprory_value")
+		val = container.AnyStoreGetAs[float64](store, "temporary_value")
 	}
 
 	out := InputFloat{val: val, store: store}

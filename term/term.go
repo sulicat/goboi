@@ -89,7 +89,6 @@ func (f *FrameBuffer) Overlay(other *FrameBuffer, x int, y int) {
 
 			if f_r >= 0 && f_r < len(*f) {
 				if f_c >= 0 && f_c < len((*f)[f_r]) {
-					// fmt.Printf("%d:%d   %d:%d\n", f_r, len(*f), f_c, len((*f)[f_r]))
 					(*f)[f_r][f_c] = (*other)[other_r][other_c]
 				}
 			}
@@ -240,6 +239,7 @@ func (t *Term) SetFramerate(framerate_s float32) {
 
 func (t *Term) Step() {
 
+	t.term_state.Step()
 	t.term_state.reset_cursor_pos()
 
 	t.update_input_state()
@@ -259,6 +259,7 @@ func (t *Term) Step() {
 
 // parse input ansi sequeces
 func (t *Term) process_key_command(in KeyCommand) {
+	t.term_state.NewKey(in.Keycode)
 }
 
 // parse input ansi sequeces
