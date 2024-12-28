@@ -2,6 +2,8 @@ package term
 
 import (
 	"runtime"
+
+	"github.com/sulicat/goboi/container"
 )
 
 type Renderable interface {
@@ -9,8 +11,6 @@ type Renderable interface {
 	Height() int
 	Render() *FrameBuffer
 }
-
-type State map[string]any // key val store for a state, 1 per widet
 
 func GET_ID() int {
 	pc, _, _, _ := runtime.Caller(2) // use the pprogram counter as the ID
@@ -82,16 +82,16 @@ func (t *Term) CheckBox(s string, checked *bool) {
 func (t *Term) InputFloat(val *float64) {
 
 	id := GET_ID()
-	state, has_state := t.WidgetStates[id]
-	if !has_state {
-		state = &State{}
-		t.WidgetStates[id] = state
+	store, has_store := t.WidgetStores[id]
+	if !has_store {
+		store = container.CreateAnyStore()
+		t.WidgetStores[id] = store
 	}
 
 	// get the state for this button, whether we are hovering or something of the like
 	draw_pos_x, draw_pos_y := t.term_state.get_cursor_pos()
 
-	b := CreateInputFloat(*val, state)
+	b := CreateInputFloat(*val, store)
 	b_buff := b.Render(
 		&t.term_state,
 		draw_pos_x, draw_pos_y,

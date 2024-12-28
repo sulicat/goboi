@@ -1,6 +1,10 @@
 package term
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/sulicat/goboi/container"
+)
 
 type InputFloat struct {
 	val             float64
@@ -8,7 +12,7 @@ type InputFloat struct {
 	is_clicked_up   bool
 	is_clicked_down bool
 	is_clicked_text bool
-	state           *State
+	store           *container.AnyStore
 }
 
 func (b *InputFloat) Width() int {
@@ -32,15 +36,6 @@ func (b *InputFloat) Render(
 
 	bg := RGB{0, 0, 0}
 	fg := RGB{255, 255, 255}
-
-	// if CheckInside(
-	// 	state.MouseX, state.MouseY,
-	// 	offset_x, offset_y,
-	// 	b.Width(), b.Height(),
-	// ) {
-	// 	bg = RGB{0, 0, 0}
-	// 	fg = RGB{255, 0, 0}
-	// }
 
 	for x := range b.Width() {
 		for y := range b.Height() {
@@ -81,6 +76,14 @@ func (b *InputFloat) Render(
 		text_color = RGB{255, 0, 0}
 		b.is_clicked_text = state.MouseClicked
 
+		if b.is_clicked_text {
+			b.store.Store("is_editing", true)
+		}
+
+	} else {
+		if state.MouseClicked {
+			b.store.Store("is_editing", false)
+		}
 	}
 
 	out[0][0].Char = CharTL
@@ -125,15 +128,15 @@ func (b *InputFloat) CheckInsideChar(
 	return false
 }
 
-func CreateInputFloat(val float64, state *State) InputFloat {
+func CreateInputFloat(val float64, store *container.AnyStore) InputFloat {
 	// we create one based on the state
 	// if the widget is being edited, use memory to initialize
-	// editing := (*state)["is_editing"]
-	// if editing {
-	// 	val = (*state)["temp_val"]
-	// }
 
-	out := InputFloat{val: val, state: state}
+	if container.AnyStoreGetAs[bool](store, "is_editing") {
+		val = container.AnyStoreGetAs[float64](store, "temprory_value")
+	}
+
+	out := InputFloat{val: val, store: store}
 	out.val_str = fmt.Sprintf("%.3f", val)
 
 	return out
