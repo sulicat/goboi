@@ -13,4 +13,6 @@ const (
 	KeyCodeArrowDown  = 40  // arrow down
 	KeyCodeArrowLeft  = 37  // arrow left
 	KeyCodeArrowRight = 39  // arrow right
+	KeyCodeMinus      = 45  // minus sign (-)
+	KeyCodePlus       = 43  // plus sign (+)
 )

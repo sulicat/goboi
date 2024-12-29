@@ -91,7 +91,7 @@ func (t *Term) InputFloat(val *float64) {
 	// get the state for this button, whether we are hovering or something of the like
 	draw_pos_x, draw_pos_y := t.term_state.get_cursor_pos()
 
-	b := CreateInputFloat(*val, store)
+	b := CreateInputFloat(val, store)
 	b_buff := b.Render(
 		&t.term_state,
 		draw_pos_x, draw_pos_y,
@@ -102,16 +102,4 @@ func (t *Term) InputFloat(val *float64) {
 		draw_pos_x, draw_pos_y)
 	t.term_state.update_cursor_pos(b.Width(), b.Height())
 
-	if b.IsClickedUp() {
-		*val += 0.1
-	}
-
-	if b.IsClickedDown() {
-		*val -= 0.1
-	}
-
-	if b.IsClickedText() {
-		// Set state to editing, for this element
-		// state management happens here
-	}
 }

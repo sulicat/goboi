@@ -5,10 +5,11 @@ import (
 	"strconv"
 
 	"github.com/sulicat/goboi/container"
+	"github.com/sulicat/goboi/regex_utils"
 )
 
 type InputFloat struct {
-	val             float64
+	val             *float64
 	val_str         string
 	is_clicked_up   bool
 	is_clicked_down bool
@@ -18,6 +19,7 @@ type InputFloat struct {
 
 func (b *InputFloat) Width() int {
 	l := len(b.val_str)
+
 	return l + 2
 }
 
@@ -32,12 +34,55 @@ func (b *InputFloat) Render(
 	offset_x int, offset_y int,
 ) *FrameBuffer {
 
-	out := FrameBuffer{}
-	out.Make(b.Width(), b.Height())
-
 	bg := RGB{0, 0, 0}
 	fg := RGB{255, 255, 255}
 
+	// if we are in edit mode and the user presses keys,
+	// add the keys to the float
+	is_editing := container.AnyStoreGetAs[bool](b.store, "is_editing")
+
+	if is_editing {
+		temp_val := container.AnyStoreGetAs[string](b.store, "temp_val")
+		for _, key := range state.KeysDown {
+			new_val := temp_val
+			if (key >= 48 && key <= 57) ||
+				key == KeyCodePeriod ||
+				key == KeyCodeMinus {
+
+				new_val += string(rune(key))
+			}
+
+			if key == KeyCodeDelete {
+				if len(new_val) >= 1 {
+					new_val = new_val[:len(new_val)-1]
+				}
+			}
+
+			if key == KeyCodeEnter {
+				b.store.Store("temp_val", temp_val)
+				b.val_str = temp_val
+				b.stop_editing()
+			}
+
+			// regex match for float
+			// if pass set the temp val
+			// TODO: suli, careful might be slow, check later
+
+			matches := regex_utils.FloatingPointRE.Find([]byte(new_val))
+			if len(matches) == len(new_val) || new_val == "-" {
+				temp_val = new_val
+			}
+		}
+
+		b.store.Store("temp_val", temp_val)
+		b.val_str = temp_val
+
+	} else {
+		b.val_str = fmt.Sprintf("%.3f", *b.val)
+	}
+
+	out := FrameBuffer{}
+	out.Make(b.Width(), b.Height())
 	for x := range b.Width() {
 		for y := range b.Height() {
 			out[y][x].has_changed = true
@@ -47,23 +92,8 @@ func (b *InputFloat) Render(
 	}
 
 	text_color := RGB{255, 255, 255}
-
-	// if we are in edit mode and the user presses keys,
-	// add the keys to the float
-	if container.AnyStoreGetAs[bool](b.store, "is_editing") {
-		// get the current val as a string
-		float_val := container.AnyStoreGetAs[float64](b.store, "temporary_value")
-		val := fmt.Sprintf("%f", float_val)
-
-		for _, key := range state.KeysDown {
-			if key >= 48 && key <= 57 {
-				// check if we are adding a key
-				val += string(rune(key))
-			}
-		}
-
-		final_val, _ := strconv.ParseFloat(val, 64)
-		b.store.Store("temporary_value", final_val)
+	if is_editing {
+		text_color = RGB{255, 0, 255}
 	}
 
 	// top arrow
@@ -92,16 +122,17 @@ func (b *InputFloat) Render(
 		offset_x, offset_y,
 		b.Width()-1, b.Height(),
 	) {
+
 		text_color = RGB{255, 0, 0}
 		b.is_clicked_text = state.MouseClicked
 
 		if b.is_clicked_text {
-			b.store.Store("is_editing", true)
+			b.start_editing()
 		}
 
 	} else {
-		if state.MouseClicked {
-			b.store.Store("is_editing", false)
+		if state.MouseClicked && is_editing {
+			b.stop_editing()
 		}
 	}
 
@@ -135,6 +166,17 @@ func (b *InputFloat) IsClickedText() bool {
 	return b.is_clicked_text
 }
 
+func (b *InputFloat) start_editing() {
+	b.store.Store("is_editing", true)
+	b.store.Store("temp_val", "")
+}
+
+func (b *InputFloat) stop_editing() {
+	b.store.Store("is_editing", false)
+
+	*b.val, _ = strconv.ParseFloat(b.val_str, 64)
+}
+
 func (b *InputFloat) CheckInsideChar(
 	char_r int, char_c int,
 	state *TermState,
@@ -146,16 +188,12 @@ func (b *InputFloat) CheckInsideChar(
 	return false
 }
 
-func CreateInputFloat(val float64, store *container.AnyStore) InputFloat {
+func CreateInputFloat(val *float64, store *container.AnyStore) InputFloat {
 	// we create one based on the state
 	// if the widget is being edited, use memory to initialize
 
-	if container.AnyStoreGetAs[bool](store, "is_editing") {
-		val = container.AnyStoreGetAs[float64](store, "temporary_value")
-	}
-
 	out := InputFloat{val: val, store: store}
-	out.val_str = fmt.Sprintf("%.3f", val)
+	out.val_str = fmt.Sprintf("%.5f", *val)
 
 	return out
 }
