@@ -105,6 +105,9 @@ func (b *InputFloat) Render(
 
 		out[0][b.Width()-1].FGColor = RGB{255, 0, 0}
 		b.is_clicked_up = state.MouseClicked
+		if b.is_clicked_up {
+			b.on_clicked_up()
+		}
 
 		// bot arrow
 	} else if b.CheckInsideChar(
@@ -115,6 +118,9 @@ func (b *InputFloat) Render(
 
 		out[2][b.Width()-1].FGColor = RGB{255, 0, 0}
 		b.is_clicked_down = state.MouseClicked
+		if b.is_clicked_down {
+			b.on_clicked_down()
+		}
 
 		// text
 	} else if CheckInside(
@@ -122,8 +128,10 @@ func (b *InputFloat) Render(
 		offset_x, offset_y,
 		b.Width()-1, b.Height(),
 	) {
+		if !is_editing {
+			text_color = RGB{255, 0, 0}
+		}
 
-		text_color = RGB{255, 0, 0}
 		b.is_clicked_text = state.MouseClicked
 
 		if b.is_clicked_text {
@@ -168,13 +176,25 @@ func (b *InputFloat) IsClickedText() bool {
 
 func (b *InputFloat) start_editing() {
 	b.store.Store("is_editing", true)
+
+	// TODO, not sure behavior I want. I think eidting starts empty is preferrable
 	b.store.Store("temp_val", "")
+	// other option is starting with the current val
+	//b.store.Store("temp_val", b.val_str)
 }
 
 func (b *InputFloat) stop_editing() {
 	b.store.Store("is_editing", false)
 
 	*b.val, _ = strconv.ParseFloat(b.val_str, 64)
+}
+
+func (b *InputFloat) on_clicked_down() {
+	*b.val -= 0.1
+}
+
+func (b *InputFloat) on_clicked_up() {
+	*b.val += 0.1
 }
 
 func (b *InputFloat) CheckInsideChar(
@@ -189,11 +209,7 @@ func (b *InputFloat) CheckInsideChar(
 }
 
 func CreateInputFloat(val *float64, store *container.AnyStore) InputFloat {
-	// we create one based on the state
-	// if the widget is being edited, use memory to initialize
-
 	out := InputFloat{val: val, store: store}
 	out.val_str = fmt.Sprintf("%.5f", *val)
-
 	return out
 }

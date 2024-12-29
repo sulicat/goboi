@@ -127,6 +127,7 @@ type Term struct {
 	writer           *bufio.Writer
 	old_state        *term.State
 	frame_rate_timer utils.WaitTimer
+	mouse_held_down  bool
 
 	// input channel
 	key_input_buff   chan KeyCommand
@@ -318,14 +319,19 @@ func (t *Term) InputLoop() {
 				case 67: // MouseMove
 					input.IsMouseMove = true
 				case 32:
-					input.IsMousePress = true
+					// input.IsMousePress = true
+					t.mouse_held_down = true
 					input.Button = 0
 				case 34:
-					input.IsMousePress = true
+					// input.IsMousePress = true
+					t.mouse_held_down = true
 					input.Button = 1
 				case 35:
 					input.IsMouseRelease = true
+					t.mouse_held_down = false
 				}
+
+				input.IsMousePress = t.mouse_held_down
 
 				if len(t.mouse_input_buff) < cap(t.mouse_input_buff) {
 					t.mouse_input_buff <- input
