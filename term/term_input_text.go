@@ -1,8 +1,6 @@
 package term
 
 import (
-	"fmt"
-
 	"github.com/sulicat/goboi/container"
 )
 
@@ -47,7 +45,7 @@ func (b *InputText) Render(
 	cursor_pos := 0
 	if is_editing {
 		render_text = container.AnyStoreGetAs[string](b.store, "temp_val")
-		cursor_pos = container.AnyStoreGetAs[int](b.store, "cursor_pos")
+		cursor_pos = b.cursor_pos()
 	}
 
 	if CheckInside(
@@ -137,6 +135,11 @@ done:
 	return &out
 }
 
+func (b *InputText) cursor_pos() int {
+	return container.AnyStoreGetAs[int](b.store, "cursor_pos")
+
+}
+
 func (b *InputText) update_cursor_flash() {
 	flash := container.AnyStoreGetAs[int](b.store, "cursor_flash")
 	flash += 1
@@ -156,13 +159,12 @@ func (b *InputText) key_input(state *TermState) {
 	is_editing := container.AnyStoreGetAs[bool](b.store, "is_editing")
 	current_val := container.AnyStoreGetAs[string](b.store, "temp_val")
 
-	if 1 == 1 || is_editing {
+	if is_editing {
 		for _, key := range state.KeysDown {
 
-			fmt.Printf("%v\n\r", key)
-
 			if IsAlphaNumeric(key) {
-				current_val += string(rune(key))
+				current_val = current_val[:b.cursor_pos()] + string(rune(key)) + current_val[b.cursor_pos():]
+				b.move_cursor(+1)
 			}
 
 			if key == KeyCodeEnter {
@@ -175,7 +177,6 @@ func (b *InputText) key_input(state *TermState) {
 
 			if key == KeyCodeArrowRight {
 				b.move_cursor(+1)
-				fmt.Printf("right %v\n\r", key)
 			}
 
 			if key == KeyCodeArrowUp {
@@ -186,6 +187,16 @@ func (b *InputText) key_input(state *TermState) {
 				b.move_cursor(+1 * (b.Width() - 2))
 			}
 
+			if key == KeyCodeDelete {
+				if b.cursor_pos() >= 1 {
+					current_val = current_val[:b.cursor_pos()-1] + current_val[b.cursor_pos():]
+					b.move_cursor(-1)
+				}
+
+			}
+
+			// TODO: suli ctr+left/right
+
 			b.store.Store("temp_val", current_val)
 			*b.val = current_val
 
@@ -194,11 +205,12 @@ func (b *InputText) key_input(state *TermState) {
 }
 
 func (b *InputText) move_cursor(move_dist int) {
-	cursor_pos := container.AnyStoreGetAs[int](b.store, "cursor_pos")
+	cursor_pos := b.cursor_pos()
 	cursor_pos += move_dist
 	if cursor_pos >= 0 && cursor_pos < len(*b.val) {
 		b.store.Store("cursor_pos", cursor_pos)
 	}
+	b.should_flash = true
 }
 
 func (b *InputText) start_editing() {

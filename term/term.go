@@ -289,8 +289,6 @@ func (t *Term) InputLoop() {
 	buf := make([]byte, 1024)
 	for {
 		n, _ := os.Stdin.Read(buf)
-
-		fmt.Printf("%v\n\r", buf[:n])
 		if n == 1 {
 
 			// make sure we can still escape out
@@ -434,9 +432,9 @@ func (t *Term) Draw() {
 			t.start_y+r+1))
 	}
 
-	// t.writer.Write([]byte(t.sb.String()))
-	// fmt.Fprint(t.writer, t.sb.String())
-	// t.writer.Flush()
+	t.writer.Write([]byte(t.sb.String()))
+	fmt.Fprint(t.writer, t.sb.String())
+	t.writer.Flush()
 
 	// TODO: suli, can we fix this??? slow and busts the cache
 	t.front.Clear()

@@ -71,7 +71,12 @@ const (
 func IsAlphaNumeric(keycode int) bool {
 	return (keycode >= 'A' && keycode <= 'Z') ||
 		(keycode >= 'a' && keycode <= 'z') ||
-		(keycode >= '0' && keycode <= '9')
+		(keycode >= '0' && keycode <= '9') ||
+		keycode == ',' ||
+		keycode == '.' ||
+		keycode == ' ' ||
+		keycode == '!' ||
+		keycode == '?'
 }
 
 func MoveCursor(x int, y int) string {
