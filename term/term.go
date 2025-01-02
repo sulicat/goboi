@@ -289,6 +289,8 @@ func (t *Term) InputLoop() {
 	buf := make([]byte, 1024)
 	for {
 		n, _ := os.Stdin.Read(buf)
+
+		fmt.Printf("%v\n\r", buf[:n])
 		if n == 1 {
 
 			// make sure we can still escape out
@@ -299,6 +301,22 @@ func (t *Term) InputLoop() {
 
 			if len(t.key_input_buff) < cap(t.key_input_buff) {
 				t.key_input_buff <- input
+			}
+
+		} else if n == 3 {
+			// arrow keys
+			if buf[0] == 27 && buf[1] == 91 {
+				new_buf := append([]byte(nil), buf[:n]...)
+				switch buf[2] {
+				case 65:
+					t.key_input_buff <- KeyCommand{Keycode: KeyCodeArrowUp, Buffer: new_buf}
+				case 66:
+					t.key_input_buff <- KeyCommand{Keycode: KeyCodeArrowDown, Buffer: new_buf}
+				case 68:
+					t.key_input_buff <- KeyCommand{Keycode: KeyCodeArrowLeft, Buffer: new_buf}
+				case 67:
+					t.key_input_buff <- KeyCommand{Keycode: KeyCodeArrowRight, Buffer: new_buf}
+				}
 			}
 
 		} else if n > 3 {
@@ -416,9 +434,9 @@ func (t *Term) Draw() {
 			t.start_y+r+1))
 	}
 
-	t.writer.Write([]byte(t.sb.String()))
-	fmt.Fprint(t.writer, t.sb.String())
-	t.writer.Flush()
+	// t.writer.Write([]byte(t.sb.String()))
+	// fmt.Fprint(t.writer, t.sb.String())
+	// t.writer.Flush()
 
 	// TODO: suli, can we fix this??? slow and busts the cache
 	t.front.Clear()

@@ -68,6 +68,12 @@ const (
 	MouseInputPrefix = "\x1b[M"
 )
 
+func IsAlphaNumeric(keycode int) bool {
+	return (keycode >= 'A' && keycode <= 'Z') ||
+		(keycode >= 'a' && keycode <= 'z') ||
+		(keycode >= '0' && keycode <= '9')
+}
+
 func MoveCursor(x int, y int) string {
 	return fmt.Sprintf("\033[%d;%dH", y, x)
 }
