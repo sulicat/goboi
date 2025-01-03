@@ -22,16 +22,16 @@ func (b *Button) Render(
 	out := FrameBuffer{}
 	out.Make(b.Width(), b.Height())
 
-	bg := RGB{0, 0, 0}
-	fg := RGB{255, 255, 255}
+	bg := state.color_scheme.BackgroundColor
+	fg := state.color_scheme.TextColor
 
 	if CheckInside(
 		state.MouseX, state.MouseY,
 		offset_x, offset_y,
 		b.Width(), b.Height(),
 	) {
-		bg = RGB{0, 0, 0}
-		fg = RGB{255, 0, 0}
+		bg = state.color_scheme.BackgroundColor
+		fg = state.color_scheme.HoverColor
 	}
 
 	for x := range b.Width() {

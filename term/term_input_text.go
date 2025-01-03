@@ -37,7 +37,10 @@ func (b *InputText) Render(
 		}
 	}
 
-	border_color := RGB{255, 255, 255}
+	border_color := state.color_scheme.TextColor
+	text_color := state.color_scheme.TextColor
+	bg_color := state.color_scheme.BackgroundColor
+
 	is_editing := container.AnyStoreGetAs[bool](b.store, "is_editing")
 
 	// render text
@@ -53,7 +56,7 @@ func (b *InputText) Render(
 		offset_x, offset_y,
 		b.Width(), b.Height(),
 	) {
-		border_color = RGB{255, 0, 255}
+		border_color = state.color_scheme.HoverColor
 
 		if state.MouseClicked {
 			b.start_editing()
@@ -61,6 +64,11 @@ func (b *InputText) Render(
 
 	} else if state.MouseClicked && is_editing { // clicked outside of the box
 		b.stop_editing()
+	}
+
+	if is_editing {
+		border_color = state.color_scheme.SelectedColor
+		text_color = state.color_scheme.SelectedColor
 	}
 
 	out[0][0].FGColor = border_color
@@ -119,10 +127,12 @@ func (b *InputText) Render(
 
 			char := render_text[ri]
 			out[y][x].Char = string(char)
-			out[y][x].FGColor = RGB{255, 0, 255}
+			out[y][x].FGColor = text_color
 
 			if ri == cursor_pos && b.should_flash && is_editing {
 				out[y][x].Char = CharBlock
+				out[y][x].FGColor = state.color_scheme.SecondaryColor
+				out[y][x].BGColor = bg_color
 
 			}
 

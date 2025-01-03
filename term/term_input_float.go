@@ -34,8 +34,8 @@ func (b *InputFloat) Render(
 	offset_x int, offset_y int,
 ) *FrameBuffer {
 
-	bg := RGB{0, 0, 0}
-	fg := RGB{255, 255, 255}
+	bg := state.color_scheme.BackgroundColor
+	fg := state.color_scheme.TextColor
 
 	// if we are in edit mode and the user presses keys,
 	// add the keys to the float
@@ -91,9 +91,9 @@ func (b *InputFloat) Render(
 		}
 	}
 
-	text_color := RGB{255, 255, 255}
+	text_color := fg
 	if is_editing {
-		text_color = RGB{255, 0, 255}
+		text_color = state.color_scheme.SelectedColor
 	}
 
 	// top arrow
@@ -103,7 +103,7 @@ func (b *InputFloat) Render(
 		offset_x, offset_y,
 	) {
 
-		out[0][b.Width()-1].FGColor = RGB{255, 0, 0}
+		out[0][b.Width()-1].FGColor = state.color_scheme.HoverColor
 		b.is_clicked_up = state.MouseClicked
 		if b.is_clicked_up {
 			b.on_clicked_up()
@@ -116,7 +116,7 @@ func (b *InputFloat) Render(
 		offset_x, offset_y,
 	) {
 
-		out[2][b.Width()-1].FGColor = RGB{255, 0, 0}
+		out[2][b.Width()-1].FGColor = state.color_scheme.HoverColor
 		b.is_clicked_down = state.MouseClicked
 		if b.is_clicked_down {
 			b.on_clicked_down()
@@ -129,7 +129,7 @@ func (b *InputFloat) Render(
 		b.Width()-1, b.Height(),
 	) {
 		if !is_editing {
-			text_color = RGB{255, 0, 0}
+			text_color = state.color_scheme.HoverColor
 		}
 
 		b.is_clicked_text = state.MouseClicked

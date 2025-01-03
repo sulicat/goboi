@@ -29,8 +29,9 @@ func (b *Slider) Render(
 	offset_x int, offset_y int,
 ) *FrameBuffer {
 
-	bg := RGB{0, 0, 0}
-	fg := RGB{255, 255, 255}
+	bg := state.color_scheme.BackgroundColor
+	fg := state.color_scheme.TextColor
+	text_color := fg
 
 	out := FrameBuffer{}
 	out.Make(b.Width(), b.Height())
@@ -53,7 +54,15 @@ func (b *Slider) Render(
 		state,
 		offset_x, offset_y,
 	) {
-		out[0][slider_index].FGColor = RGB{255, 0, 0}
+
+		if state.MouseDown {
+			out[0][slider_index].FGColor = state.color_scheme.SelectedColor
+			text_color = state.color_scheme.SelectedColor
+		} else {
+			out[0][slider_index].FGColor = state.color_scheme.HoverColor
+			text_color = state.color_scheme.HoverColor
+		}
+
 	}
 
 	// if the mouse is inside the slider anywhere
@@ -86,6 +95,7 @@ func (b *Slider) Render(
 	for i, c := range val_string {
 		if i < 5 {
 			out[0][slider_width+i+1].Char = string(c)
+			out[0][slider_width+i+1].FGColor = text_color
 		}
 	}
 

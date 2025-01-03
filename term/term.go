@@ -162,9 +162,7 @@ func Create(width int, height int) Term {
 	out.key_input_buff = make(chan KeyCommand, 10)     // buffer 10 keys
 	out.mouse_input_buff = make(chan MouseCommand, 10) // buffer 10 moves
 
-	out.SetColor(RGB{255, 255, 255})
-	out.SetBackgroundColor(RGB{0, 0, 0})
-	out.term_state.color_scheme = CreateColorScheme()
+	out.SetColorscheme(CreateColorScheme())
 
 	out.term_state_inital = out.term_state
 	out.term_state_inital.MouseDown = false
@@ -176,14 +174,15 @@ func Create(width int, height int) Term {
 
 func (t *Term) SetColorscheme(in ColorScheme) {
 	t.term_state.color_scheme = in
+	t.term_state.color_scheme_orig = in
 }
 
-func (t *Term) SetColor(c RGB) {
-	t.term_state.fg_color = c
+func (t *Term) ResetColorscheme() {
+	t.term_state.color_scheme = t.term_state.color_scheme_orig
 }
 
-func (t *Term) SetBackgroundColor(c RGB) {
-	t.term_state.bg_color = c
+func (t *Term) ColorScheme() *ColorScheme {
+	return &t.term_state.color_scheme
 }
 
 func (t *Term) SameLine() {

@@ -23,8 +23,8 @@ func (l *Label) Render(t *TermState) *FrameBuffer {
 	for i, s := range l.val {
 		out[0][i].has_changed = true
 		out[0][i].Char = string(s)
-		out[0][i].BGColor = t.bg_color
-		out[0][i].FGColor = t.fg_color
+		out[0][i].BGColor = t.color_scheme.BackgroundColor
+		out[0][i].FGColor = t.color_scheme.TextColor
 	}
 
 	return &out

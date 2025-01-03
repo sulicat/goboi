@@ -19,8 +19,6 @@ type TermState struct {
 	KeysDown    []int // keys held down on this step
 	KeysClicked []int // keys rising edge this step
 
-	bg_color        RGB
-	fg_color        RGB
 	alignment_mode  int
 	cursor_x        int
 	cursor_y        int
@@ -30,7 +28,8 @@ type TermState struct {
 	last_drawn_h    int
 	last_mouse_down bool
 
-	color_scheme ColorScheme
+	color_scheme      ColorScheme
+	color_scheme_orig ColorScheme // used for scheme reset
 }
 
 func (ts *TermState) reset_cursor_pos() {
