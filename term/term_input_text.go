@@ -199,7 +199,6 @@ func (b *InputText) key_input(state *TermState) {
 
 			b.store.Store("temp_val", current_val)
 			*b.val = current_val
-
 		}
 	}
 }

@@ -29,6 +29,8 @@ type TermState struct {
 	last_drawn_w    int
 	last_drawn_h    int
 	last_mouse_down bool
+
+	color_scheme ColorScheme
 }
 
 func (ts *TermState) reset_cursor_pos() {

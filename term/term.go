@@ -164,6 +164,7 @@ func Create(width int, height int) Term {
 
 	out.SetColor(RGB{255, 255, 255})
 	out.SetBackgroundColor(RGB{0, 0, 0})
+	out.term_state.color_scheme = CreateColorScheme()
 
 	out.term_state_inital = out.term_state
 	out.term_state_inital.MouseDown = false
@@ -171,6 +172,10 @@ func Create(width int, height int) Term {
 
 	out.Start()
 	return out
+}
+
+func (t *Term) SetColorscheme(in ColorScheme) {
+	t.term_state.color_scheme = in
 }
 
 func (t *Term) SetColor(c RGB) {
