@@ -77,4 +77,6 @@ func (ts *TermState) NewKey(code int) {
 func (ts *TermState) Step() {
 	ts.KeysClicked = []int{}
 	ts.KeysDown = []int{}
+
+	StepWidgets()
 }

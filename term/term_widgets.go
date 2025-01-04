@@ -6,19 +6,32 @@ import (
 	"github.com/sulicat/goboi/container"
 )
 
+// a map of line number -> iteration count.
+// reset every step
+// increment every GET_ID()
+var iteration_state = map[int]int{}
+
 type Renderable interface {
 	Width() int
 	Height() int
 	Render() *FrameBuffer
 }
 
-func GET_ID() int {
-	pc, _, _, _ := runtime.Caller(3) // use the pprogram counter as the ID
+func GET_LINE_NUM() int {
+	pc, _, _, _ := runtime.Caller(3)
 	return int(pc)
 }
 
+func StepWidgets() {
+	iteration_state = map[int]int{}
+}
+
 func GetUniqueStore(t *Term) *container.AnyStore {
-	id := GET_ID()
+	line_num := GET_LINE_NUM()
+
+	id := iteration_state[line_num] + (line_num * 1000)
+	iteration_state[line_num] += 1
+
 	store, has_store := t.WidgetStores[id]
 	if !has_store {
 		store = container.CreateAnyStore()
