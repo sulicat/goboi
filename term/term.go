@@ -130,9 +130,8 @@ type Term struct {
 	framerate_s float32
 	fullScreen  bool
 
-	front  FrameBuffer
-	back   FrameBuffer
-	scroll int
+	front FrameBuffer
+	back  FrameBuffer
 
 	sb               strings.Builder
 	writer           *bufio.Writer
@@ -163,7 +162,6 @@ func Create(width int, height int) Term {
 
 	out.front.Make(out.width, out.height)
 	out.back.Make(out.width, out.height)
-	out.scroll = 0
 
 	out.writer = bufio.NewWriter(os.Stdout)
 	out.sb = strings.Builder{}
@@ -250,11 +248,11 @@ func (t *Term) SetFullscreen(is_fullscreen bool) {
 }
 
 func (t *Term) Scroll(amount int) {
-	t.scroll += amount
+	t.term_state.scroll += amount
 }
 
 func (t *Term) GetScroll() int {
-	return t.scroll
+	return t.term_state.scroll
 }
 
 func (t *Term) SetFramerate(framerate_s float32) {
@@ -268,11 +266,11 @@ func (t *Term) Step() {
 	if !c.is_overlayed {
 		// update scrolls
 		if t.term_state.IsScrollDown {
-			t.Scroll(-1)
+			t.Scroll(+1)
 		}
 
 		if t.term_state.IsScrollUp {
-			t.Scroll(+1)
+			t.Scroll(-1)
 		}
 	}
 

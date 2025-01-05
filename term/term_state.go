@@ -29,6 +29,7 @@ type TermState struct {
 	last_drawn_w    int
 	last_drawn_h    int
 	last_mouse_down bool
+	scroll          int
 
 	color_scheme      ColorScheme
 	color_scheme_orig ColorScheme // used for scheme reset
@@ -42,7 +43,7 @@ func (ts *TermState) reset_cursor_pos() {
 }
 
 func (ts *TermState) get_cursor_pos() (int, int) {
-	return ts.cursor_x, ts.cursor_y
+	return ts.cursor_x, ts.cursor_y + ts.scroll
 }
 
 // this indicates the user wants the next draw to happen at
