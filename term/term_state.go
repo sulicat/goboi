@@ -15,6 +15,8 @@ type TermState struct {
 	MouseY       int
 	MouseDown    bool // if mouse is held this is held true
 	MouseClicked bool // if mouse is held, this is triggered true for 1 step. Rising edge of mouse down
+	IsScrollUp   bool
+	IsScrollDown bool
 
 	KeysDown    []int // keys held down on this step
 	KeysClicked []int // keys rising edge this step

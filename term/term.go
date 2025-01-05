@@ -43,8 +43,9 @@ type Cell struct {
 	Char    string
 	Depth   int
 
-	cached      string
-	has_changed bool
+	cached       string
+	has_changed  bool
+	is_overlayed bool
 }
 
 func (c *Cell) Str() string {
@@ -70,12 +71,17 @@ func (f *FrameBuffer) Make(width int, height int) {
 	}
 }
 
+func (f *FrameBuffer) CellAt(x int, y int) *Cell {
+	return &(*f)[y][x]
+}
+
 func (f *FrameBuffer) Clear() {
 	for r := range len(*f) {
 		for c := range len((*f)[r]) {
 			(*f)[r][c].has_changed = true
 			(*f)[r][c].Char = ""
 			(*f)[r][c].BGColor = RGB{0, 0, 0}
+			(*f)[r][c].is_overlayed = false
 		}
 	}
 }
@@ -90,6 +96,10 @@ func (f *FrameBuffer) Overlay(other *FrameBuffer, x int, y int) {
 			if f_r >= 0 && f_r < len(*f) {
 				if f_c >= 0 && f_c < len((*f)[f_r]) {
 					(*f)[f_r][f_c] = (*other)[other_r][other_c]
+					(*f)[f_r][f_c].is_overlayed = true
+
+					// TODO: suli ... add this to bust cache in 1 place
+					// (*f)[f_r][f_c].has_changed = true
 				}
 			}
 
@@ -120,8 +130,9 @@ type Term struct {
 	framerate_s float32
 	fullScreen  bool
 
-	front FrameBuffer
-	back  FrameBuffer
+	front  FrameBuffer
+	back   FrameBuffer
+	scroll int
 
 	sb               strings.Builder
 	writer           *bufio.Writer
@@ -152,6 +163,7 @@ func Create(width int, height int) Term {
 
 	out.front.Make(out.width, out.height)
 	out.back.Make(out.width, out.height)
+	out.scroll = 0
 
 	out.writer = bufio.NewWriter(os.Stdout)
 	out.sb = strings.Builder{}
@@ -237,12 +249,32 @@ func (t *Term) SetFullscreen(is_fullscreen bool) {
 	t.fullScreen = is_fullscreen
 }
 
+func (t *Term) Scroll(amount int) {
+	t.scroll += amount
+}
+
+func (t *Term) GetScroll() int {
+	return t.scroll
+}
+
 func (t *Term) SetFramerate(framerate_s float32) {
 	t.framerate_s = framerate_s
 	t.frame_rate_timer.SetDuration(float64(t.framerate_s))
 }
 
 func (t *Term) Step() {
+
+	c := t.front.CellAt(t.term_state.MouseX, t.term_state.MouseY)
+	if !c.is_overlayed {
+		// update scrolls
+		if t.term_state.IsScrollDown {
+			t.Scroll(-1)
+		}
+
+		if t.term_state.IsScrollUp {
+			t.Scroll(+1)
+		}
+	}
 
 	t.term_state.Step()
 	t.term_state.reset_cursor_pos()
@@ -269,14 +301,18 @@ func (t *Term) process_key_command(in KeyCommand) {
 
 // parse input ansi sequeces
 func (t *Term) process_mouse_command(in MouseCommand) {
-
 	t.term_state.MouseX = in.MouseX
 	t.term_state.MouseY = in.MouseY
 	t.term_state.MouseDown = in.IsMousePress
+	t.term_state.IsScrollDown = in.IsScrollDown
+	t.term_state.IsScrollUp = in.IsScrollUp
 }
 
 // TODO: Fix me, bad idea function, dealing with the input flush the wrong way
 func (t *Term) update_input_state() {
+
+	t.term_state.IsScrollDown = false
+	t.term_state.IsScrollUp = false
 
 	// on rising edge, the clicked signal is high
 	if t.term_state.MouseDown && !t.term_state.last_mouse_down {
