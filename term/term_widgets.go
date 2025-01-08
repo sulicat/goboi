@@ -140,6 +140,10 @@ func (t *Term) Slider(val *float64, min float64, max float64) {
 	t.term_state.update_cursor_pos(b.Width(), b.Height())
 }
 
+// ┌────────────────────────────────────────────────┐
+// │hello world                                     │
+// │                                                │
+// └────────────────────────────────────────────────┘
 func (t *Term) InputText(in *string, width int, height int) {
 	store := GetUniqueStore(t)
 
@@ -147,6 +151,29 @@ func (t *Term) InputText(in *string, width int, height int) {
 	draw_pos_x, draw_pos_y := t.term_state.get_cursor_pos()
 
 	b := CreateInputText(in, width, height, store)
+	b_buff := b.Render(
+		&t.term_state,
+		draw_pos_x, draw_pos_y,
+	)
+
+	t.front.Overlay(
+		b_buff,
+		draw_pos_x, draw_pos_y)
+	t.term_state.update_cursor_pos(b.Width(), b.Height())
+
+}
+
+func (t *Term) CreatePixels(width int, height int) [][]RGB {
+	out := make([][]RGB, height)
+	for i := range len(out) {
+		out[i] = make([]RGB, width)
+	}
+	return out
+}
+
+func (t *Term) Canvas(pixels *[][]RGB) {
+	draw_pos_x, draw_pos_y := t.term_state.get_cursor_pos()
+	b := CreateCanvasType(pixels)
 	b_buff := b.Render(
 		&t.term_state,
 		draw_pos_x, draw_pos_y,

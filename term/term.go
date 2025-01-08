@@ -276,8 +276,12 @@ func (t *Term) Step() {
 
 	t.term_state.Step()
 	t.term_state.reset_cursor_pos()
-
 	t.update_input_state()
+
+	// TODO: suli
+	// at the end of the step we want to check how much we rendered
+	// snap the scroll back to the maximum if it is beyond that
+	// draw the scroll bar
 
 	if t.frame_rate_timer.Check() {
 		t.frame_rate_timer.Reset()
