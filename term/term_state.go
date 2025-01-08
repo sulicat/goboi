@@ -28,6 +28,9 @@ type TermState struct {
 	cursor_y_prev   int
 	last_drawn_w    int
 	last_drawn_h    int
+	absolute_next   bool
+	absolute_x      int
+	absolute_y      int
 	last_mouse_down bool
 	scroll          int
 
@@ -43,6 +46,12 @@ func (ts *TermState) reset_cursor_pos() {
 }
 
 func (ts *TermState) get_cursor_pos() (int, int) {
+
+	if ts.absolute_next {
+		ts.absolute_next = false
+		return ts.absolute_x, ts.absolute_y + ts.scroll
+	}
+
 	return ts.cursor_x, ts.cursor_y + ts.scroll
 }
 
@@ -51,6 +60,14 @@ func (ts *TermState) get_cursor_pos() (int, int) {
 func (ts *TermState) SameLine() {
 	ts.cursor_x = ts.cursor_x_prev + ts.last_drawn_w
 	ts.cursor_y = ts.cursor_y_prev
+}
+
+// This is the user saying they want the next thing to draw at this position
+// after drawing at that position, revert back to the old position
+func (ts *TermState) AbsolutePosition(x int, y int) {
+	ts.absolute_next = true
+	ts.absolute_x = x
+	ts.absolute_y = y
 }
 
 func (ts *TermState) update_cursor_pos(added_w int, added_h int) {
