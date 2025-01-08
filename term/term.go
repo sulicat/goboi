@@ -16,7 +16,12 @@ import (
 // get terminal input, including mouse
 // get info on the terminal (mostly a passthrough from go/x/term)
 
-type RGB [3]int // rgb
+type RGB [3]int  // rgb
+type RGBA [4]int // rgba
+
+func (p *RGBA) RGB() RGB {
+	return RGB{p[0], p[1], p[2]}
+}
 
 type KeyCommand struct {
 	Keycode int

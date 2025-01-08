@@ -163,15 +163,15 @@ func (t *Term) InputText(in *string, width int, height int) {
 
 }
 
-func (t *Term) CreatePixels(width int, height int) [][]RGB {
-	out := make([][]RGB, height)
+func (t *Term) CreatePixels(width int, height int) [][]RGBA {
+	out := make([][]RGBA, height)
 	for i := range len(out) {
-		out[i] = make([]RGB, width)
+		out[i] = make([]RGBA, width)
 	}
 	return out
 }
 
-func (t *Term) Canvas(pixels *[][]RGB) {
+func (t *Term) Canvas(pixels *[][]RGBA) {
 	draw_pos_x, draw_pos_y := t.term_state.get_cursor_pos()
 	b := CreateCanvasType(pixels)
 	b_buff := b.Render(

@@ -1,7 +1,7 @@
 package term
 
 type CanvasType struct {
-	pixels *[][]RGB
+	pixels *[][]RGBA
 }
 
 func (b *CanvasType) Width() int {
@@ -29,17 +29,22 @@ func (b *CanvasType) Render(
 
 	for y := range b.Height() {
 		for x := range b.Width() {
-			out[y][x].Char = CharSquare
-			out[y][x].FGColor = (*b.pixels)[y][x]
-			out[y][x].has_changed = true
+
+			if (*b.pixels)[y][x][3] == 0 {
+				out[y][x].has_changed = false
+
+			} else {
+				out[y][x].Char = CharSquare
+				out[y][x].FGColor = (*b.pixels)[y][x].RGB()
+				out[y][x].has_changed = true
+			}
 		}
 	}
 
 	return &out
-
 }
 
-func CreateCanvasType(pixels *[][]RGB) CanvasType {
+func CreateCanvasType(pixels *[][]RGBA) CanvasType {
 	out := CanvasType{pixels: pixels}
 
 	return out
