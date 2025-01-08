@@ -100,9 +100,11 @@ func (f *FrameBuffer) Overlay(other *FrameBuffer, x int, y int) {
 
 			if f_r >= 0 && f_r < len(*f) {
 				if f_c >= 0 && f_c < len((*f)[f_r]) {
-					(*f)[f_r][f_c] = (*other)[other_r][other_c]
-					(*f)[f_r][f_c].is_overlayed = true
 
+					if (*other)[other_r][other_c].has_changed {
+						(*f)[f_r][f_c] = (*other)[other_r][other_c]
+						(*f)[f_r][f_c].is_overlayed = true
+					}
 					// TODO: suli ... add this to bust cache in 1 place
 					// (*f)[f_r][f_c].has_changed = true
 				}
@@ -203,6 +205,10 @@ func (t *Term) ColorScheme() *ColorScheme {
 func (t *Term) SameLine() {
 	// next item to be added is same line
 	t.term_state.SameLine()
+}
+
+func (t *Term) AbsolutePosition(x int, y int) {
+	t.term_state.AbsolutePosition(x, y)
 }
 
 func (t *Term) SetOffset(x, y int) {
