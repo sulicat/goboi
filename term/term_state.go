@@ -48,7 +48,6 @@ func (ts *TermState) reset_cursor_pos() {
 func (ts *TermState) get_cursor_pos() (int, int) {
 
 	if ts.absolute_next {
-		ts.absolute_next = false
 		return ts.absolute_x, ts.absolute_y + ts.scroll
 	}
 
@@ -71,6 +70,12 @@ func (ts *TermState) AbsolutePosition(x int, y int) {
 }
 
 func (ts *TermState) update_cursor_pos(added_w int, added_h int) {
+
+	if ts.absolute_next {
+		ts.absolute_next = false
+		return
+	}
+
 	ts.cursor_x_prev = ts.cursor_x
 	ts.cursor_y_prev = ts.cursor_y
 

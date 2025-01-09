@@ -163,6 +163,7 @@ func (t *Term) InputText(in *string, width int, height int) {
 
 }
 
+// CANVAS
 func (t *Term) CreatePixels(width int, height int) [][]RGBA {
 	out := make([][]RGBA, height)
 	for i := range len(out) {
@@ -171,9 +172,29 @@ func (t *Term) CreatePixels(width int, height int) [][]RGBA {
 	return out
 }
 
+// CANVAS
 func (t *Term) Canvas(pixels *[][]RGBA) {
 	draw_pos_x, draw_pos_y := t.term_state.get_cursor_pos()
 	b := CreateCanvasType(pixels)
+	b_buff := b.Render(
+		&t.term_state,
+		draw_pos_x, draw_pos_y,
+	)
+
+	t.front.Overlay(
+		b_buff,
+		draw_pos_x, draw_pos_y)
+	t.term_state.update_cursor_pos(b.Width(), b.Height())
+
+}
+
+func (t *Term) STDOUT(width int, height int) {
+	store := GetUniqueStore(t)
+
+	// get the state for this button, whether we are hovering or something of the like
+	draw_pos_x, draw_pos_y := t.term_state.get_cursor_pos()
+
+	b := CreateSTDOUT(width, height, store)
 	b_buff := b.Render(
 		&t.term_state,
 		draw_pos_x, draw_pos_y,

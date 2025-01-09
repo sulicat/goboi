@@ -137,8 +137,9 @@ type Term struct {
 	framerate_s float32
 	fullScreen  bool
 
-	front FrameBuffer
-	back  FrameBuffer
+	front   FrameBuffer
+	back    FrameBuffer
+	std_out string
 
 	sb               strings.Builder
 	writer           *bufio.Writer
@@ -440,6 +441,10 @@ func (t *Term) Start() {
 func (t *Term) Close() {
 	fmt.Print(DisableMouseTracking())
 	term.Restore(int(os.Stdin.Fd()), t.old_state)
+}
+
+func (t *Term) Printf(format string, a ...any) {
+	t.std_out += fmt.Sprintf(format, a...)
 }
 
 func (t *Term) Draw() {
