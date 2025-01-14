@@ -6,7 +6,7 @@ A collection of GO utilities and libraries I sometimes use.
 Immediate mode terminal gui library, an API similar to imgui but much less featured.
 
 ![Gif of term library](./resources/term.gif)
-
+```go
     import (
         "math"
         term "github.com/sulicat/goboi/term"
@@ -95,7 +95,6 @@ Immediate mode terminal gui library, an API similar to imgui but much less featu
 			y := math.Sin(ang) * 1 * float64(int(offset)%20-10)
 			x += 10
 			y += 10
-			// pixels[int(x)][int(y)] = term.RGB{255, int((float64((i+int(offset))%360) / 360.0) * 255), 0}
 			pixels[int(x)][int(y)] = term.RGBA{255, 255, 0, 255}
 		}
 
@@ -105,3 +104,4 @@ Immediate mode terminal gui library, an API similar to imgui but much less featu
 		t.Step()
 
 	}
+```
