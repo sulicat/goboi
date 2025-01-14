@@ -181,6 +181,7 @@ func Create(width int, height int) Term {
 	out.mouse_input_buff = make(chan MouseCommand, 10) // buffer 10 moves
 
 	out.SetColorscheme(CreateColorScheme())
+	out.term_state.tab_group_stack = []int{}
 
 	out.term_state_inital = out.term_state
 	out.term_state_inital.MouseDown = false

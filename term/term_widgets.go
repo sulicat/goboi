@@ -204,5 +204,29 @@ func (t *Term) STDOUT(width int, height int) {
 		b_buff,
 		draw_pos_x, draw_pos_y)
 	t.term_state.update_cursor_pos(b.Width(), b.Height())
+}
+
+// when
+
+// tab group
+func (t *Term) BeginTabGroup() {
+	// store := GetUniqueStore(t)
+}
+
+func (t *Term) EndTabGroup() {
+
+}
+
+func (t *Term) BeginTab(name string) bool {
+	return true
+}
+
+func (t *Term) EndTab() {
+
+}
+
+func (t *Term) Space(width int, height int) {
+	// t.term_state.get_cursor_pos()
+	t.term_state.update_cursor_pos(width, height)
 
 }

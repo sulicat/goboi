@@ -36,6 +36,8 @@ type TermState struct {
 
 	color_scheme      ColorScheme
 	color_scheme_orig ColorScheme // used for scheme reset
+
+	tab_group_stack []int // ID of tab groups
 }
 
 func (ts *TermState) reset_cursor_pos() {
